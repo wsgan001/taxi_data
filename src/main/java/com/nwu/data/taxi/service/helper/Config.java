@@ -5,20 +5,22 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 
 public class Config {
     private static File dataFolder;
-    private static FilenameFilter fileFilter;
-    private static int maxnumberoffilestoread = 1000;
-    private static final double angleChunk = 0.005;
-    private static final double minLat = 37.6;
-    private static final double maxLat = 37.824;
-    private static final double minLon = -122.526;
-    private static final double maxLon = -122.35;
-    private static final int numOfLatBins = (int) ((maxLat - minLat) / angleChunk) + 1;
-    private static final int numOfLonBins = (int) ((maxLon - minLon) / angleChunk) + 1;
-    private static final long MaxTimeInterval = 420;
+    public static FilenameFilter FILE_FILTER = (dir1, name) -> name.endsWith(".txt");
+    public static final double ANGLE_CHUNK = 0.005;
+    public static final double MIN_LAT = 37.6;
+    public static final double MAX_LAT = 37.824;
+    public static final double MIN_LON = -122.526;
+    public static final double MAX_LON = -122.35;
+    public static final int NUM_OF_LAT_BINS = (int) ((MAX_LAT - MIN_LAT) / ANGLE_CHUNK) + 1;
+    public static final int NUM_OF_LON_BINS = (int) ((MAX_LON - MIN_LON) / ANGLE_CHUNK) + 1;
+    public static final long MAX_TIME_INTERVAL = 420;
 
+    public static SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyyMMdd");
+    public static SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("Hmmss");
 
     public static File getDataFolder(){
         try {
@@ -33,35 +35,12 @@ public class Config {
 
     }
 
-    public static FilenameFilter getFileFilter(){
-        if(null == fileFilter) {
-            fileFilter = (dir1, name) -> name.endsWith(".txt");
-        }
-        return fileFilter;
-    }
-
-    public static int getMaxnumberoffilestoread() {
-        return maxnumberoffilestoread;
-    }
-
-
-    public static int getNumoflatbins() {
-        return numOfLatBins;
-    }
-
-    public static int getNumoflonbins() {
-        return numOfLonBins;
-    }
-
     public static int getLatBin(double lat){
-        return (int) ((lat-minLat)/angleChunk);
+        return (int) ((lat- MIN_LAT)/ ANGLE_CHUNK);
     }
 
     public static int getLonBin(double lon){
-        return (int) ((lon-minLon)/angleChunk);
+        return (int) ((lon- MIN_LON)/ ANGLE_CHUNK);
     }
 
-    public static long getMaxTimeInterval() {
-        return MaxTimeInterval;
-    }
 }

@@ -1,133 +1,104 @@
 package com.nwu.data.taxi.service.helper;
 
-import com.nwu.data.taxi.domain.model.GPSReading;
+import com.nwu.data.taxi.domain.model.GPSData;
 import com.nwu.data.taxi.domain.model.Passenger;
+import com.nwu.data.taxi.domain.model.Taxi;
 import com.nwu.data.taxi.domain.model.TripEvent;
 import com.nwu.data.taxi.domain.repository.PassengerRepository;
+import com.nwu.data.taxi.domain.repository.TaxiRepository;
 import com.nwu.data.taxi.domain.repository.TripEventRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Date;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TurnOnTurnOffProcessor {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private PassengerRepository passengerRepository;
     private TripEventRepository tripEventRepository;
+    private TaxiRepository taxiRepository;
+    private List<TripEvent> tripEvents;
+    private List<Passenger> passengers;
+    private int count;
+    private long total;
 
-    public TurnOnTurnOffProcessor(PassengerRepository passengerRepository, TripEventRepository tripEventRepository) {
+    public TurnOnTurnOffProcessor(PassengerRepository passengerRepository, TripEventRepository tripEventRepository, TaxiRepository taxiRepository) {
         this.passengerRepository = passengerRepository;
         this.tripEventRepository = tripEventRepository;
+        this.taxiRepository = taxiRepository;
     }
 
-    public void extractPassengers() {
-        File mainDir = Config.getDataFolder();
-        int cnt = 0;
-        if (mainDir.isDirectory()) {
-            for (File f : mainDir.listFiles(Config.getFileFilter())) {
-                try {
-                    processFile(f);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-                System.out.println(cnt++);
-                if (cnt > Config.getMaxnumberoffilestoread())
-                    break;
-            }
+    public void extractTurnOnTurnOff(Pageable page) {
+        logger.info("Start to process GPS Data");
+        count += page.getPageNumber() * page.getPageSize();
+        total = taxiRepository.count();
+        tripEvents = new ArrayList<>();
+        passengers = new ArrayList<>();
+        TripEvent lastEvent = tripEventRepository.findTopByOrderByIdDesc();
+        if ((null == lastEvent) || (count >= lastEvent.getTaxi().getId())) {
+            taxiRepository.findAll(page).forEach(taxi -> processTaxi(taxi));
         }
+        logger.info("Start saving passenger data");
+        passengerRepository.save(passengers);
+        logger.info("Start saving trip event data");
+        tripEventRepository.save(tripEvents);
+        logger.info("End saving data");
     }
 
-    private void processFile(File f) throws FileNotFoundException {
-        Scanner sc = new Scanner(f);
-        Integer DropOffLocation = null;
-        GPSReading lastReading = null;
-        String name = f.getName().split("\\.")[0];
-        int fileLine = 0;
-        while (sc.hasNext()) {
-            fileLine++;
-            GPSReading thisReading = parseLine(name, sc.nextLine().trim());
-            if (lastReading == null) {
-                if (thisReading.isOccupied()) {
-                    DropOffLocation = thisReading.getGrid();
+    private void processTaxi(Taxi taxi) {
+
+        Iterable<GPSData> gpsData = taxi.getGpsData();
+        GPSData dropOffLocation = null;
+        GPSData last = null;
+        for (GPSData current : gpsData) {
+            if (null == last) {
+                if (current.isOccupied()) {
+                    dropOffLocation = current;
                 }
-                lastReading = thisReading;
             } else {
-                if (map(lastReading.getDate()) != map(thisReading.getDate()))
-//                    p.println(map(lastReading.getDate()) +"\t"+ lastReading.getGrid()+"\t" + lastReading.getTime());
-                if (lastReading.getTime() - thisReading.getTime() > Config
-                        .getMaxTimeInterval()) {
-                    printTurnOnAndTurnOffs(lastReading, thisReading);
-                    if (DropOffLocation != null) {
-                        Date d = lastReading.getDate();
-                        int date = map(d);
-                        Passenger passenger = new Passenger(date, lastReading.getGrid(), DropOffLocation, lastReading.getTime());
-                        passengerRepository.save(passenger);
-                        //                        passengerPrintStreams.get(id).println(
-//                                lastReading.getGrid() + "\t" + DropOffLocation
-//                                        + "\t" + lastReading.getTime());
-                        DropOffLocation = null;
+                if (!last.getDateString().equals(current.getDateString()))
+                    addTurnOnEvent(last);
+                if (last.getTime() - current.getTime() > Config.MAX_TIME_INTERVAL) {
+                    addTurnOffEvent(current, last);
+                    if (null != dropOffLocation) {
+                        addPassenger(last, dropOffLocation);
+                        dropOffLocation = null;
                     }
 
                 } else {
-                    if (thisReading.isOccupied() && !lastReading.isOccupied()) {
+                    if (current.isOccupied() && !last.isOccupied()) {
                         // drop off
-                        DropOffLocation = lastReading.getGrid();
-                    } else if (!thisReading.isOccupied()
-                            && lastReading.isOccupied()) {
+                        dropOffLocation = last;
+                    } else if (!current.isOccupied()
+                            && last.isOccupied()) {
                         // pickup
-                        Date d = lastReading.getDate();
-                        int date = map(d);
-                        Passenger passenger = new Passenger(date, lastReading.getGrid(), DropOffLocation, lastReading.getTime());
-                        passengerRepository.save(passenger);
-//                        if (passengerPrintStreams.get(id) == null) {
-//                            passengerPrintStreams.put(id, new PrintStream(
-//                                    new File(Config.getAnalysisoutputpath()
-//                                            + "//Passengers//" + id + ".txt")));
-//                        }
-//                        passengerPrintStreams.get(id).println(
-//                                lastReading.getGrid() + "\t" + DropOffLocation
-//                                        + "\t" + lastReading.getTime());
-                        DropOffLocation = null;
+                        addPassenger(last, dropOffLocation);
+                        dropOffLocation = null;
                     }
                 }
-                lastReading = thisReading;
             }
+            last = current;
         }
-        System.out.println("file name : " + name + "line: "+ fileLine++);
+        count++;
+
+        logger.info("Taxi : " + taxi.getName() + ", id: " + taxi.getId() + " is done.(" + count + "/" + total + ")");
     }
 
-    private void printTurnOnAndTurnOffs(GPSReading lastReading, GPSReading thisReading) throws FileNotFoundException {
-        Date turnOffDate = thisReading.getDate();
-        Date turnOnDate = lastReading.getDate();
-        int turnOffTime = map(turnOffDate);
-        int turnOnTime = map(turnOnDate);
-
-        Date dayOff = new Date(turnOffDate.getYear(), turnOffDate.getMonth(),
-                turnOffDate.getDate());
-		Date dayOn = new Date(turnOnDate.getYear(), turnOnDate.getMonth(),
-				turnOnDate.getDate());
-		TripEvent tripEvent = new TripEvent(turnOffTime, (byte) 0, (thisReading.getTime() - dayOff.getTime() / 1000), lastReading.getGrid(), (lastReading.getTime() - thisReading.getTime()));
-        tripEventRepository.save(tripEvent);
-//		printStreams.get(turnOnTime).println(
-//				1 + "\t" + (lastReading.getTime() - dayOn.getTime() / 1000)
-//						+ "\t" + lastReading.getGrid());
-//        printStreams.get(turnOffTime).println(
-//                0 + "\t" + (thisReading.getTime() - dayOff.getTime() / 1000)
-//                        + "\t"
-//                        + (lastReading.getTime() - thisReading.getTime())
-//                        + "\t" + lastReading.getGrid());
+    private void addPassenger(GPSData start, GPSData end) {
+        passengers.add( new Passenger(start, end));
     }
 
-    private int map(Date d) {
-        return (d.getYear() * 12 + d.getMonth()) * 31 + d.getDate() - 1;
+    private void addTurnOnEvent(GPSData last) {
+        tripEvents.add(new TripEvent(Long.parseLong(last.getDateString()), Long.parseLong(last.getTimeString()), TripEvent.TURN_ON, last.getGrid(),  last.getTime(), 0, last.getTaxi()));
     }
 
-    private GPSReading parseLine(String name, String nextLine) {
-        Scanner sc = new Scanner(nextLine);
-        double lat = sc.nextDouble();
-        double lon = sc.nextDouble();
-        byte status = (byte) (sc.next().charAt(0) == '1' ? 1 : 0);
-        long time = sc.nextLong();
-        return new GPSReading(name, lat, lon, time, status);
+    private void addTurnOffEvent(GPSData current, GPSData last){
+        long turnOffDate = Long.parseLong(current.getDateString());
+        long turnOffTime = Long.parseLong(current.getTimeString());
+        long turnOffDateTime = current.getTime();
+        long duration = last.getTime() - current.getTime();
+        tripEvents.add(new TripEvent(turnOffDate, turnOffTime, TripEvent.TURN_OFF, last.getGrid(), turnOffDateTime, duration, last.getTaxi()));
     }
 }

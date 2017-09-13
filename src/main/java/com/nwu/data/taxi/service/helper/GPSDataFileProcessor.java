@@ -9,7 +9,7 @@ import java.util.Scanner;
 import com.nwu.data.taxi.domain.model.GPSData;
 import com.nwu.data.taxi.domain.model.GPSReading;
 
-public class FileRawInputProcessor {
+public class GPSDataFileProcessor {
 
     public Iterable<GPSReading> process(File f, byte fromStatus, byte toStatus) {
         Scanner sc;

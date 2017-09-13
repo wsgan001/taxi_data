@@ -1,30 +1,37 @@
 package com.nwu.data.taxi.domain.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import javax.persistence.*;
 
 @Entity
 public class TripEvent {
+    public static Integer TURN_ON = 1;
+    public static Integer TURN_OFF = 0;
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Integer id;
     private long eventDate;
-    private byte tripType;
     private long eventTime;
+    private Integer eventType;
     private Integer eventGrid;
+    private long eventDateTime;
     private long duration;
+    @ManyToOne
+    @JoinColumn (name = "taxi_id")
+    private Taxi taxi;
 
     public TripEvent() {
     }
 
-    public TripEvent(long eventDate, byte tripType, long eventTime, Integer eventGrid, long duration) {
+    public TripEvent(long eventDate, long eventTime, Integer eventType, Integer eventGrid, long eventDateTime, long duration, Taxi taxi) {
         this.eventDate = eventDate;
-        this.tripType = tripType;
         this.eventTime = eventTime;
+        this.eventType = eventType;
         this.eventGrid = eventGrid;
+        this.eventDateTime = eventDateTime;
         this.duration = duration;
+        this.taxi = taxi;
     }
 
     public Integer getId() {
@@ -43,14 +50,6 @@ public class TripEvent {
         this.eventDate = eventDate;
     }
 
-    public byte getTripType() {
-        return tripType;
-    }
-
-    public void setTripType(byte tripType) {
-        this.tripType = tripType;
-    }
-
     public long getEventTime() {
         return eventTime;
     }
@@ -67,6 +66,14 @@ public class TripEvent {
         this.eventGrid = eventGrid;
     }
 
+    public Integer getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(Integer eventType) {
+        this.eventType = eventType;
+    }
+
     public long getDuration() {
         return duration;
     }
@@ -74,4 +81,21 @@ public class TripEvent {
     public void setDuration(long duration) {
         this.duration = duration;
     }
+
+    public long getEventDateTime() {
+        return eventDateTime;
+    }
+
+    public void setEventDateTime(long eventDateTime) {
+        this.eventDateTime = eventDateTime;
+    }
+
+    public Taxi getTaxi() {
+        return taxi;
+    }
+
+    public void setTaxi(Taxi taxi) {
+        this.taxi = taxi;
+    }
 }
+

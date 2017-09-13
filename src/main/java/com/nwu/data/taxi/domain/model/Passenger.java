@@ -1,28 +1,39 @@
 package com.nwu.data.taxi.domain.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import javax.persistence.*;
 
 @Entity
 public class Passenger {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Integer id;
-    private long travelDate;
-    private Integer startLocation;
-    private Integer endLocation;
+    private String travelDate;
+    private Integer startGrid;
+    private Integer endGrid;
     private long travelTime;
+    @OneToOne
+    @JoinColumn(name = "start_gps_id")
+    private GPSData startGPSReading;
+    @OneToOne
+    @JoinColumn(name = "end_gps_id")
+    private GPSData endGPSReading;
+    @ManyToOne
+    @JoinColumn(name = "taxi_id")
+    private Taxi taxi;
 
     public Passenger() {
     }
 
-    public Passenger(long travelDate, Integer startLocation, Integer endLocation, long travelTime) {
-        this.travelDate = travelDate;
-        this.startLocation = startLocation;
-        this.endLocation = endLocation;
-        this.travelTime = travelTime;
+    public Passenger(GPSData start, GPSData end) {
+        this.travelDate = start.getDateString();
+        this.startGrid = start.getGrid();
+        this.endGrid = null == end ? null : end.getGrid();
+        this.travelTime = start.getTime();
+        this.taxi = start.getTaxi();
+        this.startGPSReading = start;
+        this.endGPSReading = end;
     }
 
     public Integer getId() {
@@ -33,28 +44,28 @@ public class Passenger {
         this.id = id;
     }
 
-    public long getTravelDate() {
+    public String getTravelDate() {
         return travelDate;
     }
 
-    public void setTravelDate(long travelDate) {
+    public void setTravelDate(String travelDate) {
         this.travelDate = travelDate;
     }
 
-    public Integer getStartLocation() {
-        return startLocation;
+    public Integer getStartGrid() {
+        return startGrid;
     }
 
-    public void setStartLocation(Integer startLocation) {
-        this.startLocation = startLocation;
+    public void setStartGrid(Integer startGrid) {
+        this.startGrid = startGrid;
     }
 
-    public Integer getEndLocation() {
-        return endLocation;
+    public Integer getEndGrid() {
+        return endGrid;
     }
 
-    public void setEndLocation(Integer endLocation) {
-        this.endLocation = endLocation;
+    public void setEndGrid(Integer endGrid) {
+        this.endGrid = endGrid;
     }
 
     public long getTravelTime() {
@@ -63,5 +74,29 @@ public class Passenger {
 
     public void setTravelTime(long travelTime) {
         this.travelTime = travelTime;
+    }
+
+    public Taxi getTaxi() {
+        return taxi;
+    }
+
+    public void setTaxi(Taxi taxi) {
+        this.taxi = taxi;
+    }
+
+    public GPSData getStartGPSReading() {
+        return startGPSReading;
+    }
+
+    public void setStartGPSReading(GPSData startGPSReading) {
+        this.startGPSReading = startGPSReading;
+    }
+
+    public GPSData getEndGPSReading() {
+        return endGPSReading;
+    }
+
+    public void setEndGPSReading(GPSData endGPSReading) {
+        this.endGPSReading = endGPSReading;
     }
 }

@@ -1,6 +1,7 @@
 package com.nwu.data.taxi.domain.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.nwu.data.taxi.service.helper.Config;
 
 import javax.persistence.*;
@@ -16,16 +17,28 @@ public class GPSReading {
     private double lon;
     private long time;
     private byte status;
+    @ManyToOne
+    @JoinColumn (name = "taxi_id")
+    @JsonBackReference
+    private Taxi taxi;
 
     public GPSReading() {
     }
 
-    public GPSReading(String name, double lat, double lon, long time, byte status) {
+    public GPSReading(String name, double lat, double lon, long time, byte status, Taxi taxi) {
         this.name = name;
         this.lat = lat;
         this.lon = lon;
         this.time = time;
         this.status = status;
+        this.taxi = taxi;
+    }
+
+    public GPSReading(String name, int i, int i1, int i2, byte b) {
+    }
+
+    public GPSReading(String name, double lat, double lon, long time, byte status) {
+
     }
 
     public Integer getId() {
@@ -81,10 +94,18 @@ public class GPSReading {
     }
 
     public Integer getGrid() {
-        return Config.getLatBin(this.getLat()) * Config.getNumoflonbins() + Config.getLonBin(this.getLon());
+        return Config.getLatBin(this.getLat()) * Config.NUM_OF_LON_BINS + Config.getLonBin(this.getLon());
     }
 
     public Date getDate() {
         return new Date(this.getTime() * 1000);
+    }
+
+    public Taxi getTaxi() {
+        return taxi;
+    }
+
+    public void setTaxi(Taxi taxi) {
+        this.taxi = taxi;
     }
 }

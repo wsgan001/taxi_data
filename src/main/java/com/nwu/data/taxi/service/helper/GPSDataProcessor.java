@@ -4,19 +4,13 @@ import com.nwu.data.taxi.domain.repository.GPSReadingRepository;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 
-public class RawInputProcessor {
+public class GPSDataProcessor {
     private String extension;
 
-    public RawInputProcessor( String e) {
+    public GPSDataProcessor(String e) {
         setExtension(e);
-    }
-
-    public String getExtension() {
-        return extension;
     }
 
     public void setExtension(String extension) {
@@ -26,10 +20,10 @@ public class RawInputProcessor {
     public void processFiles(byte fromStatus, byte toStatus, GPSReadingRepository gpsReadingRepository){
         File dir = Config.getDataFolder();
         if (dir.isDirectory()) {
-            File[] files = dir.listFiles(Config.getFileFilter());
+            File[] files = dir.listFiles(Config.FILE_FILTER);
             int cnt=1;
             for (File f : files){
-                gpsReadingRepository.save(new FileRawInputProcessor ().process(f, fromStatus, toStatus));
+                gpsReadingRepository.save(new GPSDataFileProcessor().process(f, fromStatus, toStatus));
                 System.out.println( "processed " + cnt++ + " out of " + files.length );
             }
         }
@@ -40,10 +34,10 @@ public class RawInputProcessor {
         try {
             dir = new ClassPathResource("data/"+index).getFile();
             if (dir.isDirectory()) {
-                File[] files = dir.listFiles(Config.getFileFilter());
+                File[] files = dir.listFiles(Config.FILE_FILTER);
                 int cnt=1;
                 for (File f : files){
-                    gpsDataRepository.save(new FileRawInputProcessor ().process(f));
+                    gpsDataRepository.save(new GPSDataFileProcessor().process(f));
                     System.out.println( "processed " + cnt++ + " out of " + files.length );
                 }
             }
