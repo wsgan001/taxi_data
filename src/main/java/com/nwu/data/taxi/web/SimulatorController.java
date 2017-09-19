@@ -31,9 +31,4 @@ public class SimulatorController {
         long time = d.getTime() / 1000;
         return simulatorService.process(recommender, time, time + 24 * 3600, num);
     }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/performance")
-    public @ResponseBody Iterable<Performance> getPerformance (@RequestParam(value = "pageNum", defaultValue = "0") int pageNum, @RequestParam(value = "pageSize", defaultValue = "50") int pageSize) {
-        return simulatorService.getPerformance(pageNum, pageSize);
-    }
 }

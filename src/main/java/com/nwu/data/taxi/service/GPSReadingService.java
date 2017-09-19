@@ -29,8 +29,6 @@ public class GPSReadingService {
     @Autowired
     private GridProbabilityRepository gridProbabilityRepository;
 
-    private Pageable pageRequest = new PageRequest(0, 100);
-
     public long loadGPSData(int index) {
         GPSDataProcessor inputProcessor = new GPSDataProcessor("txt");
         inputProcessor.processFiles(gpsDataRepository, index);
@@ -49,36 +47,10 @@ public class GPSReadingService {
         return pageNum;
     }
 
-
-    public Iterable<GPSReading> getGPSReading(int pageNum, int pageSize) {
-        return gpsReadingRepository.findAll(new PageRequest(pageNum, pageSize));
-    }
-
-
-    public Iterable<PassengerData> getPassenger(int pageNum, int pageSize) {
-        return passengerRepository.findAll(new PageRequest(pageNum, pageSize));
-    }
-
-    public Iterable<GPSData> getGPSData(int pageNum, int pageSize) {
-        return gpsDataRepository.findAll(new PageRequest(pageNum, pageSize));
-    }
-
-    public Iterable<Taxi> getTaxis() {
-        return taxiRepository.findAll();
-    }
-
-    public Iterable<TripEvent> getTripEvent(int pageNum, int pageSize) {
-        return tripEventRepository.findAll(new PageRequest(pageNum, pageSize));
-    }
-
     public long loadRoutData(int pageNum, int pageSize) {
         RouteProcessor routeProcessor = new RouteProcessor(routeRepository, taxiRepository);
         routeProcessor.process(new PageRequest(pageNum, pageSize));
         return routeRepository.count();
-    }
-
-    public Iterable<Route> getRoute(int pageNum, int pageSize) {
-         return routeRepository.findAll(new PageRequest(pageNum, pageSize));
     }
 
     public long loadGridReading(int pageNum, int pageSize) {
@@ -87,17 +59,9 @@ public class GPSReadingService {
         return pageNum;
     }
 
-    public Iterable<GridReading> getGridReading(int pageNum, int pageSize) {
-        return gridReadingRepository.findAll(new PageRequest(pageNum, pageSize));
-    }
-
     public long loadGridProbability(int pageNum, int pageSize) {
         ProbabilityProcessor probabilityProcessor = new ProbabilityProcessor(gridProbabilityRepository, taxiRepository);
         probabilityProcessor.process(new PageRequest(pageNum, pageSize));
         return pageNum;
-    }
-
-    public Iterable<GridProbability> getGridProbability(int pageNum, int pageSize) {
-        return gridProbabilityRepository.findAll(new PageRequest(pageNum, pageSize));
     }
 }

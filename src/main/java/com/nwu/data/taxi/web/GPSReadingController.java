@@ -7,51 +7,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/taxi")
+@RequestMapping("/api")
 public class GPSReadingController {
-
     @Autowired
     private GPSReadingService gpsReadingService;
-
-    @RequestMapping(method = RequestMethod.GET, path = "")
-    public @ResponseBody Iterable<Taxi> getTaxi () {
-        return gpsReadingService.getTaxis();
-    }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/gpsreading")
-    public @ResponseBody Iterable<GPSReading> getGPSReading (@RequestParam(value = "pageNum", defaultValue = "0") int pageNum, @RequestParam(value = "pageSize", defaultValue = "50") int pageSize) {
-        return gpsReadingService.getGPSReading(pageNum, pageSize);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/passenger")
-    public @ResponseBody Iterable<PassengerData> getPassengers (@RequestParam(value = "pageNum", defaultValue = "0") int pageNum, @RequestParam(value = "pageSize", defaultValue = "50") int pageSize) {
-        return gpsReadingService.getPassenger(pageNum, pageSize);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/gpsdata")
-    public @ResponseBody Iterable<GPSData> getGPSData (@RequestParam(value = "pageNum", defaultValue = "0") int pageNum, @RequestParam(value = "pageSize", defaultValue = "50") int pageSize) {
-        return gpsReadingService.getGPSData(pageNum, pageSize);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/trip_event")
-    public @ResponseBody Iterable<TripEvent> getTripEvent (@RequestParam(value = "pageNum", defaultValue = "0") int pageNum, @RequestParam(value = "pageSize", defaultValue = "50") int pageSize) {
-        return gpsReadingService.getTripEvent(pageNum, pageSize);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/grid_reading")
-    public @ResponseBody Iterable<GridReading> getGridReading (@RequestParam(value = "pageNum", defaultValue = "0") int pageNum, @RequestParam(value = "pageSize", defaultValue = "50") int pageSize) {
-        return gpsReadingService.getGridReading(pageNum, pageSize);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/grid_probability")
-    public @ResponseBody Iterable<GridProbability> getGridProbability (@RequestParam(value = "pageNum", defaultValue = "0") int pageNum, @RequestParam(value = "pageSize", defaultValue = "50") int pageSize) {
-        return gpsReadingService.getGridProbability(pageNum, pageSize);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/route")
-    public @ResponseBody Iterable<Route> getRoute (@RequestParam(value = "pageNum", defaultValue = "0") int pageNum, @RequestParam(value = "pageSize", defaultValue = "50") int pageSize) {
-        return gpsReadingService.getRoute(pageNum, pageSize);
-    }
 
     @RequestMapping(method = RequestMethod.GET, path = "/gpsreading/load")
     public @ResponseBody long loadGPSReading () {

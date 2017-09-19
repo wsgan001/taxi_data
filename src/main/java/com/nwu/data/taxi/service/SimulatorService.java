@@ -16,10 +16,12 @@ import com.nwu.data.taxi.service.helper.task.VehicleTurnOnTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class SimulatorService {
@@ -228,9 +230,5 @@ public class SimulatorService {
         for(GridProbability gridProbability : gridProbabilityRepository.findByTimeTypeAndTimeChunk(ProbabilityWrapper.BY_WEEK, ProbabilityWrapper.HOUR_CHUNK)) {
             probabilities.computeIfAbsent(gridProbability.getTime(), k -> new ArrayList<>());
         }
-    }
-
-    public Iterable<Performance> getPerformance(int pageNum, int pageSize) {
-        return performanceRepository.findAll(new PageRequest(pageNum, pageSize));
     }
 }
