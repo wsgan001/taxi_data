@@ -1,12 +1,11 @@
-package com.nwu.data.taxi.service.helper;
+package com.nwu.data.taxi.service.helper.processor;
 
 import com.nwu.data.taxi.domain.model.GPSData;
 import com.nwu.data.taxi.domain.model.Route;
-import com.nwu.data.taxi.domain.model.RouteData;
 import com.nwu.data.taxi.domain.model.Taxi;
-import com.nwu.data.taxi.domain.repository.RouteDataRepository;
 import com.nwu.data.taxi.domain.repository.RouteRepository;
 import com.nwu.data.taxi.domain.repository.TaxiRepository;
+import com.nwu.data.taxi.service.helper.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -16,34 +15,32 @@ import java.util.List;
 
 public class RouteProcessor {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private RouteRepository routeRepository;
     private TaxiRepository taxiRepository;
-    private RouteDataRepository routeDataRepository;
+    private RouteRepository routeRepository;
     private List<Route> routes;
-    private List<RouteData> routeData;
     private long[][] time;
     private int[][] count;
 
-    public RouteProcessor() {
+    public RouteProcessor(RouteRepository routeRepository, TaxiRepository taxiRepository) {
+        this.taxiRepository = taxiRepository;
+        this.routeRepository = routeRepository;
         int number = Config.NUM_OF_LAT_BINS * Config.NUM_OF_LON_BINS;
         time = new long[number][number];
         count = new int[number][number];
     }
 
 
-    public void process(RouteDataRepository routeDataRepository, TaxiRepository taxiRepository, PageRequest pageRequest) {
-        routeData = new ArrayList<>();
-        this.taxiRepository = taxiRepository;
-        this.routeDataRepository = routeDataRepository;
-        this.routeDataRepository.findAll().forEach(routeData -> processRouteData(routeData));
-        this.routeDataRepository.deleteAll();
+    public void process(PageRequest pageRequest) {
+        routes = new ArrayList<>();
+        this.routeRepository.findAll().forEach(route -> processRouteData(route));
+        this.routeRepository.deleteAll();
         this.taxiRepository.findAll(pageRequest).forEach(taxi -> processTaxi(taxi));
         saveRouteData();
     }
 
-    private void processRouteData(RouteData routeData) {
-        time[routeData.getFromGrid()][routeData.getToGrid()] = routeData.getDuration();
-        count[routeData.getFromGrid()][routeData.getToGrid()] = routeData.getCount();
+    private void processRouteData(Route route) {
+        time[route.getFromGrid()][route.getToGrid()] = route.getDuration();
+        count[route.getFromGrid()][route.getToGrid()] = route.getCount();
     }
 
     private void processTaxi(Taxi taxi) {
@@ -64,11 +61,11 @@ public class RouteProcessor {
         for (int i = 0; i < time.length; i++) {
             for (int j = 0; j < time[i].length ; j++) {
                 if (time[i][j] > 0) {
-                    routeData.add(new RouteData(i, j, time[i][j], count[i][j]));
+                    routes.add(new Route(i, j, time[i][j], count[i][j]));
                 }
             }
         }
-        routeDataRepository.save(routeData);
+        routeRepository.save(routes);
     }
 
 

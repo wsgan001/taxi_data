@@ -93,7 +93,7 @@ public class GPSReading {
         return status == 1;
     }
 
-    public Integer getGrid() {
+    public int getGrid() {
         return Config.getLatBin(this.getLat()) * Config.NUM_OF_LON_BINS + Config.getLonBin(this.getLon());
     }
 

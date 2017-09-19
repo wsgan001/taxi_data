@@ -1,30 +1,29 @@
 package com.nwu.data.taxi.domain.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import javax.persistence.*;
 
 @Entity
 public class TripEvent {
-    public static Integer TURN_ON = 1;
-    public static Integer TURN_OFF = 0;
+    public static int TURN_ON = 1;
+    public static int TURN_OFF = 0;
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Integer id;
-    private long eventDate;
-    private long eventTime;
-    private Integer eventType;
-    private Integer eventGrid;
+    private String eventDate;
+    private String eventTime;
+    private int eventType;
+    private int eventGrid;
     private long eventDateTime;
     private long duration;
     @ManyToOne
     @JoinColumn (name = "taxi_id")
     private Taxi taxi;
+    private String taxiName;
 
     public TripEvent() {
     }
 
-    public TripEvent(long eventDate, long eventTime, Integer eventType, Integer eventGrid, long eventDateTime, long duration, Taxi taxi) {
+    public TripEvent(String eventDate, String eventTime, int eventType, int eventGrid, long eventDateTime, long duration, Taxi taxi) {
         this.eventDate = eventDate;
         this.eventTime = eventTime;
         this.eventType = eventType;
@@ -32,6 +31,7 @@ public class TripEvent {
         this.eventDateTime = eventDateTime;
         this.duration = duration;
         this.taxi = taxi;
+        this.taxiName = taxi.getName();
     }
 
     public Integer getId() {
@@ -42,35 +42,35 @@ public class TripEvent {
         this.id = id;
     }
 
-    public long getEventDate() {
+    public String getEventDate() {
         return eventDate;
     }
 
-    public void setEventDate(long eventDate) {
+    public void setEventDate(String eventDate) {
         this.eventDate = eventDate;
     }
 
-    public long getEventTime() {
+    public String getEventTime() {
         return eventTime;
     }
 
-    public void setEventTime(long eventTime) {
+    public void setEventTime(String eventTime) {
         this.eventTime = eventTime;
     }
 
-    public Integer getEventGrid() {
+    public int getEventGrid() {
         return eventGrid;
     }
 
-    public void setEventGrid(Integer eventGrid) {
+    public void setEventGrid(int eventGrid) {
         this.eventGrid = eventGrid;
     }
 
-    public Integer getEventType() {
+    public int getEventType() {
         return eventType;
     }
 
-    public void setEventType(Integer eventType) {
+    public void setEventType(int eventType) {
         this.eventType = eventType;
     }
 
@@ -96,6 +96,14 @@ public class TripEvent {
 
     public void setTaxi(Taxi taxi) {
         this.taxi = taxi;
+    }
+
+    public String getTaxiName() {
+        return taxiName;
+    }
+
+    public void setTaxiName(String taxiName) {
+        this.taxiName = taxiName;
     }
 }
 

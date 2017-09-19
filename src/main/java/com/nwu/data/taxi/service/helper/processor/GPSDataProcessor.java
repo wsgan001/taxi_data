@@ -1,12 +1,16 @@
-package com.nwu.data.taxi.service.helper;
+package com.nwu.data.taxi.service.helper.processor;
 import com.nwu.data.taxi.domain.repository.GPSDataRepository;
 import com.nwu.data.taxi.domain.repository.GPSReadingRepository;
+import com.nwu.data.taxi.service.helper.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 import java.io.IOException;
 
 public class GPSDataProcessor {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private String extension;
 
     public GPSDataProcessor(String e) {
@@ -24,12 +28,12 @@ public class GPSDataProcessor {
             int cnt=1;
             for (File f : files){
                 gpsReadingRepository.save(new GPSDataFileProcessor().process(f, fromStatus, toStatus));
-                System.out.println( "processed " + cnt++ + " out of " + files.length );
+                logger.info( "processed " + cnt++ + " out of " + files.length );
             }
         }
     }
 
-    public void processFiles(GPSDataRepository gpsDataRepository, Integer index) {
+    public void processFiles(GPSDataRepository gpsDataRepository, int index) {
         File dir;
         try {
             dir = new ClassPathResource("data/"+index).getFile();
@@ -38,7 +42,7 @@ public class GPSDataProcessor {
                 int cnt=1;
                 for (File f : files){
                     gpsDataRepository.save(new GPSDataFileProcessor().process(f));
-                    System.out.println( "processed " + cnt++ + " out of " + files.length );
+                    logger.info( "processed " + cnt++ + " out of " + files.length );
                 }
             }
         } catch (IOException e) {

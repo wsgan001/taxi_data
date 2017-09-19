@@ -4,4 +4,5 @@ import com.nwu.data.taxi.domain.model.Taxi;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 public interface TaxiRepository extends PagingAndSortingRepository<Taxi, Integer> {
+    Taxi findTopByName(String name);
 }

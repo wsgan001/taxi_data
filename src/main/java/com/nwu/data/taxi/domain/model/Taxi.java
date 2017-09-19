@@ -12,12 +12,12 @@ public class Taxi {
     private Integer id;
     private String name;
     @OneToMany(mappedBy = "taxi", fetch = FetchType.LAZY)
-    @OrderBy("time DESC")
+    @OrderBy("time ASC")
     @JsonBackReference
     private Set<GPSData> gpsData;
 
     @OneToMany(mappedBy = "taxi", fetch = FetchType.LAZY)
-    @OrderBy("time DESC")
+    @OrderBy("time ASC")
     @JsonBackReference
     private Set<GPSReading> gpsReading;
 
@@ -29,18 +29,25 @@ public class Taxi {
     @OneToMany(mappedBy = "taxi", fetch = FetchType.LAZY)
     @OrderBy("travel_time ASC")
     @JsonBackReference
-    private Set<Passenger> passengers;
+    private Set<PassengerData> passengerData;
+
+    @OneToMany(mappedBy = "taxi", fetch = FetchType.LAZY)
+    @OrderBy("event_date_time ASC")
+    @JsonBackReference
+    private Set<GridReading> gridReading;
+
+    @OneToOne(mappedBy = "taxi", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private Performance performance;
+
+    private String location;
 
     public Taxi() {
     }
 
-    public Taxi(Integer id, String name, Set<GPSData> gpsData, Set<GPSReading> gpsReading, Set<TripEvent> tripEvents, Set<Passenger> passengers) {
+    public Taxi(int id, String name) {
         this.id = id;
         this.name = name;
-        this.gpsData = gpsData;
-        this.gpsReading = gpsReading;
-        this.tripEvents = tripEvents;
-        this.passengers = passengers;
     }
 
     public Integer getId() {
@@ -83,11 +90,35 @@ public class Taxi {
         this.tripEvents = tripEvents;
     }
 
-    public Set<Passenger> getPassengers() {
-        return passengers;
+    public Set<PassengerData> getPassengerData() {
+        return passengerData;
     }
 
-    public void setPassengers(Set<Passenger> passengers) {
-        this.passengers = passengers;
+    public void setPassengerData(Set<PassengerData> passengerData) {
+        this.passengerData = passengerData;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public Set<GridReading> getGridReading() {
+        return gridReading;
+    }
+
+    public void setGridReading(Set<GridReading> gridReading) {
+        this.gridReading = gridReading;
+    }
+
+    public Performance getPerformance() {
+        return performance;
+    }
+
+    public void setPerformance(Performance performance) {
+        this.performance = performance;
     }
 }

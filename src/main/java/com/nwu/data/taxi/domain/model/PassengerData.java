@@ -1,18 +1,17 @@
 package com.nwu.data.taxi.domain.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import javax.persistence.*;
 
 @Entity
-public class Passenger {
+public class PassengerData {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Integer id;
     private String travelDate;
+    private String travelTime;
     private Integer startGrid;
     private Integer endGrid;
-    private long travelTime;
+    private long travelDateTime;
     @OneToOne
     @JoinColumn(name = "start_gps_id")
     private GPSData startGPSReading;
@@ -23,14 +22,15 @@ public class Passenger {
     @JoinColumn(name = "taxi_id")
     private Taxi taxi;
 
-    public Passenger() {
+    public PassengerData() {
     }
 
-    public Passenger(GPSData start, GPSData end) {
+    public PassengerData(GPSData start, GPSData end) {
         this.travelDate = start.getDateString();
+        this.travelTime = start.getTimeString();
         this.startGrid = start.getGrid();
-        this.endGrid = null == end ? null : end.getGrid();
-        this.travelTime = start.getTime();
+        this.endGrid = end.getGrid();
+        this.travelDateTime = start.getTime();
         this.taxi = start.getTaxi();
         this.startGPSReading = start;
         this.endGPSReading = end;
@@ -68,11 +68,11 @@ public class Passenger {
         this.endGrid = endGrid;
     }
 
-    public long getTravelTime() {
+    public String getTravelTime() {
         return travelTime;
     }
 
-    public void setTravelTime(long travelTime) {
+    public void setTravelTime(String travelTime) {
         this.travelTime = travelTime;
     }
 
@@ -98,5 +98,13 @@ public class Passenger {
 
     public void setEndGPSReading(GPSData endGPSReading) {
         this.endGPSReading = endGPSReading;
+    }
+
+    public long getTravelDateTime() {
+        return travelDateTime;
+    }
+
+    public void setTravelDateTime(long travelDateTime) {
+        this.travelDateTime = travelDateTime;
     }
 }

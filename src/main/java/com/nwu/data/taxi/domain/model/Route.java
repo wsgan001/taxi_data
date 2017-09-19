@@ -1,26 +1,26 @@
 package com.nwu.data.taxi.domain.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class Route {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Integer id;
-    private Integer fromGrid;
-    private Integer toGrid;
+    private int fromGrid;
+    private int toGrid;
     private long duration;
+    private int count;
+
 
     public Route() {
     }
 
-    public Route(Integer fromGrid, Integer toGrid, long duration) {
+    public Route(int fromGrid, int toGrid, long duration, int count) {
         this.fromGrid = fromGrid;
         this.toGrid = toGrid;
         this.duration = duration;
+        this.count = count;
     }
 
     public Integer getId() {
@@ -31,19 +31,19 @@ public class Route {
         this.id = id;
     }
 
-    public Integer getFromGrid() {
+    public int getFromGrid() {
         return fromGrid;
     }
 
-    public void setFromGrid(Integer fromGrid) {
+    public void setFromGrid(int fromGrid) {
         this.fromGrid = fromGrid;
     }
 
-    public Integer getToGrid() {
+    public int getToGrid() {
         return toGrid;
     }
 
-    public void setToGrid(Integer toGrid) {
+    public void setToGrid(int toGrid) {
         this.toGrid = toGrid;
     }
 
@@ -53,5 +53,17 @@ public class Route {
 
     public void setDuration(long duration) {
         this.duration = duration;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public long getTime() {
+        return duration/count;
     }
 }

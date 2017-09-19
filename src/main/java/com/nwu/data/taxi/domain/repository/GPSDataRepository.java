@@ -4,5 +4,5 @@ import com.nwu.data.taxi.domain.model.GPSData;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 public interface GPSDataRepository extends PagingAndSortingRepository<GPSData, Integer> {
-    Iterable<GPSData> findByTaxiId(Integer taxiId);
+    Iterable<GPSData> findByTaxiId(int taxiId);
 }

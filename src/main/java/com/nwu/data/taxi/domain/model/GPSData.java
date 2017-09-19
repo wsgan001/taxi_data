@@ -35,6 +35,16 @@ public class GPSData {
     }
 
     public GPSData(String name, double lat, double lon, long time, byte status) {
+        this.name = name;
+        this.lat = lat;
+        this.lon = lon;
+        this.time = time;
+        this.status = status;
+    }
+
+    public GPSData(double lat, double lon) {
+        this.lat = lat;
+        this.lon = lon;
     }
 
     public Integer getId() {
@@ -97,7 +107,7 @@ public class GPSData {
         this.taxi = taxi;
     }
 
-    public Integer getGrid() {
+    public int getGrid() {
         return Config.getLatBin(this.getLat()) * Config.NUM_OF_LON_BINS + Config.getLonBin(this.getLon());
     }
 
