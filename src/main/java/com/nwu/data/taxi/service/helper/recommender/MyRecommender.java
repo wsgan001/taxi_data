@@ -20,18 +20,16 @@ public class MyRecommender implements Recommender {
     }
 
     private void assignRoute(Vehicle v) {
-        if (v.getRoute() == null || v.getRoute().isEmpty()) {
-            logger.info("assigning route to vehicle " + v.getName());
-            List<Grid> cluster = new ArrayList<>(v.getCluster());
-            List<Grid> route = new ArrayList<>();
-            Grid currentGrid = v.getCurrentGrid();
-            while (!cluster.isEmpty()) {
-                route.addAll(bestRoute(currentGrid, cluster));
-                currentGrid = route.get(route.size() - 1);
-                cluster.remove(currentGrid);
-            }
-            v.setRoute(route);
+        logger.info("assigning route to vehicle " + v.getName());
+        List<Grid> cluster = new ArrayList<>(v.getCluster());
+        List<Grid> route = new ArrayList<>();
+        Grid currentGrid = v.getCurrentGrid();
+        while (!cluster.isEmpty()) {
+            route.addAll(bestRoute(currentGrid, cluster));
+            currentGrid = route.get(route.size() - 1);
+            cluster.remove(currentGrid);
         }
+        v.setRoute(route);
     }
 
     private List<Grid> bestRoute(Grid currentGrid, List<Grid> cluster) {
