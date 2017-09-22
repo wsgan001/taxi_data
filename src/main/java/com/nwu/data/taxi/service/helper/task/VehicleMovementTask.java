@@ -7,6 +7,7 @@ import com.nwu.data.taxi.service.helper.model.Vehicle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.ManyToOne;
 import java.util.*;
 
 
@@ -25,8 +26,8 @@ public class VehicleMovementTask implements Task {
         if (vehicle.isOn()) {
             Grid from = vehicle.getCurrentGrid();
             logger.info(vehicle.getName() + " reached " + from);
-            assignRoute();
-            if (vehicle.getRoute().size() > 0 ){
+            assignPassenger();
+            if (null != vehicle.getRoute() && vehicle.getRoute().size() > 0) {
                 Grid to = vehicle.getRoute().get(0);
                 recordDistanceAndTime(from, to);
                 addNextMovementTask(tasks, currentTime, from, to);
@@ -34,25 +35,21 @@ public class VehicleMovementTask implements Task {
         }
     }
 
-    private void assignRoute() {
+    private void assignPassenger() {
         Grid currentGrid = vehicle.getCurrentGrid();
         List<Passenger> currentGridPassengers = currentGrid.getPassengers();
         if (!vehicle.isOccupied() && null != currentGridPassengers && !currentGridPassengers.isEmpty()) {
             List<Grid> path;
             Passenger passenger;
-            do {
-                passenger = currentGridPassengers.get(0);
-                currentGridPassengers.remove(0);
-                path = getShortestPath(currentGrid, passenger.getDestination());
-            } while (null == path && !currentGridPassengers.isEmpty());
-            if (path != null) {
-                vehicle.hunt();
-                logger.info(vehicle.getName() + " HUNT!");
-                freeCluster(vehicle);
-                vehicle.setCluster(new ArrayList<>());
-                vehicle.getCluster().add(passenger.getDestination());
-                vehicle.setRoute(path);
-            }
+            passenger = currentGridPassengers.get(0);
+            currentGridPassengers.remove(0);
+            path = getShortestPath(currentGrid, passenger.getDestination());
+            vehicle.hunt();
+            logger.info(vehicle.getName() + " HUNT!");
+            freeCluster(vehicle);
+            vehicle.setCluster(new ArrayList<>());
+            vehicle.getCluster().add(passenger.getDestination());
+            vehicle.setRoute(path);
         }
     }
 
@@ -81,7 +78,6 @@ public class VehicleMovementTask implements Task {
         taskList.add(new VehicleMovementTask(vehicle));
         logger.info("Task created for time " + time);
     }
-
 
 
     private void freeCluster(Vehicle vehicle) {

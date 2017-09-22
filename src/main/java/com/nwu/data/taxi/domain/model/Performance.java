@@ -1,9 +1,11 @@
 package com.nwu.data.taxi.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.nwu.data.taxi.service.helper.Config;
 import com.nwu.data.taxi.service.helper.model.Vehicle;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 public class Performance {
@@ -18,7 +20,10 @@ public class Performance {
     private double timePerformance;
     private int passengerNum;
     private String taxiName;
-    @OneToOne
+    private String time;
+    private String date;
+    private int type;
+    @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "taxi_id")
     private Taxi taxi;
@@ -26,7 +31,7 @@ public class Performance {
     public Performance() {
     }
 
-    public Performance(Vehicle v, Taxi taxi) {
+    public Performance(Vehicle v, Date currentTime, int type) {
         this.travelDistance = v.getTravelDistance();
         this.liveDistance = v.getLiveDistance();
         this.distancePerformance = v.getDistancePerformance();
@@ -35,7 +40,18 @@ public class Performance {
         this.timePerformance = v.getTimePerformance();
         this.passengerNum = v.getNumOfHunts();
         this.taxiName = v.getName();
-        this.taxi = taxi;
+        this.taxi = v.getTaxi();
+        this.time = Config.TIME_FORMATTER.format(currentTime);
+        this.date = Config.DATE_FORMATTER.format(currentTime);
+        this.type = type;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public double getTravelDistance() {
@@ -108,5 +124,29 @@ public class Performance {
 
     public void setTaxi(Taxi taxi) {
         this.taxi = taxi;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 }

@@ -14,6 +14,9 @@ public class Config {
     public static final String[] BOTTOM_DRIVERS = {"new_eovsyt", "new_afsfat", "new_iagods", "new_ugifmav", "new_agdrea", "new_uvigcho", "new_evijcey", "new_upthin", "new_udwebir", "new_eenjoug", "new_enkkand", "new_ojfieza", "new_ipdraw", "new_efmymo", "new_abcoij", "new_ewbglo", "new_ellimtbu", "new_acvebr", "new_ecforj", "new_atzumbon", "new_eoydba", "new_egoiwroi"};
     public static final int WAITING_TIME = 600;
     public static final long TIME_OFFSET = 300;
+    public static final int REAL = 0;
+    public static final int NEIGHBOR = 1;
+    public static final int MY = 2;
     private static File dataFolder;
     public static FilenameFilter FILE_FILTER = (dir1, name) -> name.endsWith(".txt");
     public static final double ANGLE_CHUNK = 0.005;
@@ -21,6 +24,7 @@ public class Config {
     public static final double MAX_LAT = 37.824;
     public static final double MIN_LON = -122.526;
     public static final double MAX_LON = -122.35;
+    public static final int TIME_CHUNK = 7200;
     public static final int NUM_OF_LAT_BINS = (int) ((MAX_LAT - MIN_LAT) / ANGLE_CHUNK) + 1;
     public static final int NUM_OF_LON_BINS = (int) ((MAX_LON - MIN_LON) / ANGLE_CHUNK) + 1;
     public static final long MAX_TIME_INTERVAL = 420;

@@ -36,9 +36,10 @@ public class Taxi {
     @JsonBackReference
     private Set<GridReading> gridReading;
 
-    @OneToOne(mappedBy = "taxi", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "taxi", fetch = FetchType.LAZY)
     @JsonBackReference
-    private Performance performance;
+    @OrderBy("date ASC, time ASC")
+    private Set<Performance> performance;
 
     private String location;
 
@@ -114,11 +115,11 @@ public class Taxi {
         this.gridReading = gridReading;
     }
 
-    public Performance getPerformance() {
+    public Set<Performance> getPerformance() {
         return performance;
     }
 
-    public void setPerformance(Performance performance) {
+    public void setPerformance(Set<Performance> performance) {
         this.performance = performance;
     }
 }

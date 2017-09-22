@@ -1,6 +1,8 @@
 package com.nwu.data.taxi.service.helper.model;
 
 
+import com.nwu.data.taxi.domain.model.Taxi;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +18,7 @@ public class Vehicle {
     private double liveTime;
     private int numOfHunts;
     private boolean isOn;
+    private Taxi taxi;
 
     public boolean isOn() {
         return isOn;
@@ -26,15 +29,12 @@ public class Vehicle {
     public void setOff() {
         this.isOn = false;
     }
-    public Vehicle(String name, Grid currentGrid) {
-        this.name = name;
-        this.currentGrid = currentGrid;
-        travelDistance = 0;
-        liveDistance = 0;
-        numOfHunts= 0;
+    public Vehicle(Taxi taxi) {
+        this.name = taxi.getName();
+        this.currentGrid = null;
+        this.taxi = taxi;
         this.cluster = new ArrayList<>();
         this.route = new ArrayList<>();
-        this.setOff();
     }
 
     public String getName() {
@@ -147,5 +147,13 @@ public class Vehicle {
 
     public void setCurrentGrid(Grid currentGrid) {
         this.currentGrid = currentGrid;
+    }
+
+    public Taxi getTaxi() {
+        return taxi;
+    }
+
+    public void setTaxi(Taxi taxi) {
+        this.taxi = taxi;
     }
 }

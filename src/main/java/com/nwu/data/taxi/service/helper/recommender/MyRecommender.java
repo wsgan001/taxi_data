@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MyRecommender implements Recommender {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -16,7 +17,7 @@ public class MyRecommender implements Recommender {
     public void recommend(List<Vehicle> vehicles, HashMap<Integer, Grid> graph) {
         List<Grid> highProbabilityGrids = getHighProbabilityGrids(graph);
         assignHighProbabilityGridsToVehicles(vehicles, highProbabilityGrids);
-        vehicles.forEach(vehicle -> assignRoute(vehicle));
+        vehicles.forEach(this::assignRoute);
     }
 
     private void assignRoute(Vehicle v) {
@@ -155,12 +156,7 @@ public class MyRecommender implements Recommender {
     }
 
     private List<Grid> getHighProbabilityGrids(HashMap<Integer, Grid> graph) {
-        List<Grid> highProbabilityGrids = new ArrayList<>();
-        for (Grid g : graph.values()) {
-            if (g.isHighProbability())
-                highProbabilityGrids.add(g);
-        }
-        return highProbabilityGrids;
+        return graph.values().stream().filter(Grid::isHighProbability).collect(Collectors.toList());
     }
 
 }

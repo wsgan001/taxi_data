@@ -34,6 +34,6 @@ public class VehicleTurnOnTask implements Task {
         }
         logger.info(vehicle.getName() + " Turned On in " + vehicle.getCurrentGrid());
         tasks.computeIfAbsent(currentTime + 1, k -> new ArrayList<>());
-          tasks.get(currentTime + 1).add(new VehicleMovementTask(vehicle));
+        tasks.get(currentTime + 1).add(new VehicleMovementTask(vehicle));
     }
 }

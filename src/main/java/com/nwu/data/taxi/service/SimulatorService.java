@@ -10,18 +10,19 @@ import com.nwu.data.taxi.service.helper.model.Grid;
 import com.nwu.data.taxi.service.helper.model.Passenger;
 import com.nwu.data.taxi.service.helper.model.Vehicle;
 import com.nwu.data.taxi.service.helper.recommender.MyRecommender;
+import com.nwu.data.taxi.service.helper.recommender.NeighborRecommender;
 import com.nwu.data.taxi.service.helper.task.PassengerAddTask;
+import com.nwu.data.taxi.service.helper.task.PerformanceSaveTask;
 import com.nwu.data.taxi.service.helper.task.VehicleTurnOffTask;
 import com.nwu.data.taxi.service.helper.task.VehicleTurnOnTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SimulatorService {
@@ -30,13 +31,11 @@ public class SimulatorService {
     private HashMap<Integer, Grid> graph;
     private HashMap<Long, List<Task>> tasks;
     private List<Vehicle> vehicles;
-    private List<Performance> performances;
     private HashMap<String, List<GridProbability>> probabilities;
-    private long startTime, endTime;
+    private long endTime;
+    private int recommenderType;
     private Recommender recommender;
     private int numberOfVehicles;
-    @Autowired
-    private TaxiRepository taxiRepository;
     @Autowired
     private PassengerRepository passengerRepository;
     @Autowired
@@ -47,39 +46,76 @@ public class SimulatorService {
     private GridProbabilityRepository gridProbabilityRepository;
     @Autowired
     private PerformanceRepository performanceRepository;
+    @Autowired
+    private TaxiRepository taxiRepository;
 
-    public List<Performance> process(Recommender recommender, long startTime, long endTime,
-                        int numberOfVehicles){
-        graph = new HashMap<>();
-        tasks = new HashMap<>();
-        probabilities = new HashMap<>();
-        performances = new ArrayList<>();
-        this.recommender = recommender;
-        this.startTime = startTime;
+    public SimulatorService() {
+        this.graph = new HashMap<>();
+        this.tasks = new HashMap<>();
+        this.probabilities = new HashMap<>();
+    }
+
+    public void initEnvironment(int recommenderType, long startTime, long endTime,
+                                int numberOfVehicles) {
+        this.recommenderType = recommenderType;
+        switch (recommenderType) {
+            case Config.MY :
+                this.recommender = new MyRecommender();
+                break;
+            case Config.NEIGHBOR:
+                this.recommender = new NeighborRecommender();
+                break;
+            default:
+                this.recommender = new MyRecommender();
+                break;
+        }
         this.endTime = endTime;
         this.numberOfVehicles = numberOfVehicles;
-        this.recommender = new MyRecommender();
-        String date = Config.DATE_FORMATTER.format(new Date(startTime * 1000));
         loadGraph();
-        loadVehicles(date);
-        loadPassengers(date);
+        loadVehicles(getDate(startTime));
+        loadPassengers(getDate(startTime));
         loadWeekProbabilities();
-        startRecommend();
-        savePerformances();
-        return performances;
+        loadPerformanceTask(startTime, endTime);
     }
 
-    private void savePerformances() {
-        logger.info("Saving Performance! :)");
-        for (Vehicle v : vehicles) {
-            Taxi taxi = taxiRepository.findTopByName(v.getName());
-            performances.add(new Performance(v, taxi));
+
+    public void start() {
+        long currentTime = tasks.keySet().stream().min(Long::compare).get();
+        while (currentTime <= endTime ) {
+
+            List<Vehicle> recommendList = vehicles.stream()
+                    .filter(vehicle ->
+                            vehicle.isOn() &&
+                                    CollectionUtils.isEmpty(vehicle.getRoute()))
+                    .collect(Collectors.toList());
+
+            if (!recommendList.isEmpty()) {
+                updateProbabilities(new Date(currentTime * 1000));
+                logger.info("start recommending");
+                recommender.recommend(recommendList, graph);
+            }
+            if (null != tasks.get(currentTime)) {
+                logger.info("Now is : " + Config.DATETIME_FORMATTER.format(new Date(currentTime * 1000)));
+                for (Task task : tasks.get(currentTime)) {
+                    task.execute(tasks, currentTime, graph);
+                }
+                tasks.remove(currentTime);
+            }
+            currentTime = tasks.keySet().stream().min(Long::compare).get();
         }
-        performanceRepository.save(performances);
     }
+
+
+    private void loadPerformanceTask(long startTime, long endTime) {
+        for (long time = startTime + Config.TIME_CHUNK; time <= endTime; time += Config.TIME_CHUNK) {
+            tasks.computeIfAbsent(time, k -> new ArrayList<>());
+            tasks.get(time).add(new PerformanceSaveTask(performanceRepository, vehicles, recommenderType));
+        }
+    }
+
 
     private void loadGraph() {
-        routeRepository.findAll().forEach(route -> extractRoute(route));
+        routeRepository.findAll().forEach(this::extractRoute);
         addOtherNeighbors();
     }
 
@@ -126,7 +162,7 @@ public class SimulatorService {
     }
 
     private void loadPassengers(String date) {
-        for(PassengerData passengerData : passengerRepository.findByTravelDate(date)) {
+        for (PassengerData passengerData : passengerRepository.findByTravelDate(date)) {
             if (null != passengerData.getStartGrid() && null != passengerData.getEndGrid()) {
                 int location = passengerData.getStartGrid();
                 int destination = passengerData.getEndGrid();
@@ -150,21 +186,21 @@ public class SimulatorService {
     }
 
     private void loadTripEvent(Vehicle v, String date) {
-        for(TripEvent tripEvent : tripEventRepository.findByTaxiNameAndEventDate(v.getName(), date)) {
+        for (TripEvent tripEvent : tripEventRepository.findByTaxiNameAndEventDate(v.getName(), date)) {
             long time = tripEvent.getEventDateTime();
-            if(tripEvent.getEventType() == TripEvent.TURN_ON) {
-                loadTurnOn(v, date, tripEvent, time);
+            if (tripEvent.getEventType() == TripEvent.TURN_ON) {
+                loadTurnOn(v, tripEvent, time);
             } else {
                 loadTurnOffs(v, tripEvent, time);
             }
         }
     }
 
-    private void loadTurnOn(Vehicle v, String date, TripEvent tripEvent, long time) {
-        if (time > -1 && time > startTime && graph.get(tripEvent.getEventGrid()) != null) {
+    private void loadTurnOn(Vehicle v, TripEvent tripEvent, long time) {
+        if (graph.get(tripEvent.getEventGrid()) != null) {
             tasks.computeIfAbsent(time, k -> new ArrayList<>());
             tasks.get(time).add(new VehicleTurnOnTask(v, graph.get(tripEvent.getEventGrid())));
-            logger.info(v.getName() + " will turn on at " + date + " " + tripEvent.getEventTime());
+            logger.info(v.getName() + " will turn on at " + tripEvent.getEventDate() + " " + tripEvent.getEventTime());
         }
     }
 
@@ -181,43 +217,16 @@ public class SimulatorService {
     }
 
     private void loadVehiclesFromConfig(String[] drivers, int count) {
+        List<String> names = new ArrayList<>();
         for (int i = 0; i < count && i < drivers.length; i++) {
-            vehicles.add(new Vehicle(drivers[i], null));
+            names.add(drivers[i]);
         }
+        taxiRepository.findByNameIn(names).forEach(taxi -> vehicles.add(new Vehicle(taxi)));
     }
 
-
-    public void startRecommend() {
-        long currentTime = tasks.keySet().stream().min(Long::compare).get();
-        while (currentTime < endTime) {
-
-            ArrayList<Vehicle> vehiclesNeedRecommendation = new ArrayList<>();
-
-            for (Vehicle v : vehicles) {
-                if (v.isOn() && (v.getRoute() == null || v.getRoute().isEmpty())) {
-                    vehiclesNeedRecommendation.add(v);
-                }
-            }
-
-            if (!vehiclesNeedRecommendation.isEmpty()) {
-                updateProbabilities(new Date(currentTime * 1000));
-                logger.info("start recommending");
-                recommender.recommend(vehiclesNeedRecommendation, graph);
-            }
-            if (null != tasks.get(currentTime)) {
-                logger.info("Now is : " + Config.DATETIME_FORMATTER.format(new Date(currentTime * 1000)));
-                for (Task task : tasks.get(currentTime)) {
-                    task.execute(tasks, currentTime, graph);
-                }
-                tasks.remove(currentTime);
-            }
-            currentTime = tasks.keySet().stream().min(Long::compare).get();
-        }
-    }
-
-    private void updateProbabilities(Date date)  {
-        String time = Config.WEEK_FORMATTER.format(date) + String.format("%02d",Integer.parseInt(Config.HOUR_FORMATTER.format(date)) / 2 * 2);
-        for(GridProbability gridProbability : probabilities.get(time)) {
+    private void updateProbabilities(Date date) {
+        String time = Config.WEEK_FORMATTER.format(date) + String.format("%02d", Integer.parseInt(Config.HOUR_FORMATTER.format(date)) / 2 * 2);
+        for (GridProbability gridProbability : probabilities.get(time)) {
             Grid grid = graph.get(gridProbability.getGrid());
             if (null != grid) {
                 grid.setProbability(gridProbability.getProbability());
@@ -226,9 +235,14 @@ public class SimulatorService {
         }
     }
 
-    private void loadWeekProbabilities()  {
-        for(GridProbability gridProbability : gridProbabilityRepository.findByTimeTypeAndTimeChunk(ProbabilityWrapper.BY_WEEK, ProbabilityWrapper.HOUR_CHUNK)) {
+    private void loadWeekProbabilities() {
+        for (GridProbability gridProbability : gridProbabilityRepository.findByTimeTypeAndTimeChunk(ProbabilityWrapper.BY_WEEK, ProbabilityWrapper.HOUR_CHUNK)) {
             probabilities.computeIfAbsent(gridProbability.getTime(), k -> new ArrayList<>());
         }
     }
+
+    private String getDate(long startTime) {
+        return Config.DATE_FORMATTER.format(new Date(startTime * 1000));
+    }
+
 }

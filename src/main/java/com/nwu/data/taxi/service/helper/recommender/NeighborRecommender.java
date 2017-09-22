@@ -12,7 +12,7 @@ public class NeighborRecommender implements Recommender {
 
     @Override
     public void recommend(List<Vehicle> vehicles, HashMap<Integer, Grid> graph) {
-        vehicles.forEach(vehicle -> recommendRoute(vehicle));
+        vehicles.forEach(this::recommendRoute);
     }
 
     private void recommendRoute(Vehicle vehicle) {
