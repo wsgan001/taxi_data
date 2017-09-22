@@ -55,8 +55,8 @@ public class APIController {
 
     @RequestMapping(method = RequestMethod.GET, path = "/result")
     public @ResponseBody
-    List<PerformancePage> getPerformanceData(@RequestParam(value = "date", defaultValue = "20080519") String date) {
-        return performanceService.getPerformancePage(date);
+    List<PerformancePage> getPerformanceData(@RequestParam(value = "date", defaultValue = "0519") String date) {
+        return performanceService.getPerformancePage("2008" + date);
     }
 
 }

@@ -38,6 +38,7 @@ public class PerformancePage {
             if (performanceView.getTime().equals(performance.getTime())){
                 performanceView.addPerformance(performance);
                 performance = null;
+                break;
             }
         }
         if(null != performance){

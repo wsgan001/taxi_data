@@ -105,7 +105,7 @@
                 }
             }
             var rander = function(date) {
-                $.get( "api/result?date=2008"+ date, function(performanceData ) {
+                $.get( "api/result?date="+ date, function(performanceData ) {
                     clearData();
                     performanceData.forEach(function (performance) {
                         dcData.push(performance.distancePerformance);
