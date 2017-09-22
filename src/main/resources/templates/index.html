@@ -1,6 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous"/>
+        <style>
+            canvas{
+                -moz-user-select: none;
+                -webkit-user-select: none;
+                -ms-user-select: none;
+            }
+            .container {
+                margin-top: 20px;
+            }
+        </style>
+    </head>
     <body>
-        <h1>Hello</h1>
+        <div class="container">
+            <div class="row justify-content-end">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="text" id="date" placeholder="Result Date..(0519)" aria-label="Result Date..(0519)" class="form-control"/>
+                        <span class="input-group-btn">
+                            <button class="btn btn-primary" id="load_data" type="button">Load Data</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <canvas id="dc_canvas"></canvas>
+                    <canvas id="tc_canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js"></script>
+        <script src="../../utils.js"></script>
+        <script>
+            var TIMES = ["0", "2", "4", "6", "8", "10", "12", "14", "16", "18", "20", "22"];
+            var dcData = [];
+            var tcData = [];
+            function initConfig(data, title) {
+                return {
+                    type: 'line',
+                        data: {
+                    labels: TIMES,
+                        datasets: [{
+                        label: "My",
+                        backgroundColor: window.chartColors.red,
+                        borderColor: window.chartColors.red,
+                        data: data[0],
+                        fill: false,
+                    }, {
+                        label: "Default",
+                        fill: false,
+                        backgroundColor: window.chartColors.blue,
+                        borderColor: window.chartColors.blue,
+                        data: data[1],
+                    }]
+                },
+                    options: {
+                        responsive: true,
+                            title:{
+                            display:true,
+                                text:title
+                        },
+                        tooltips: {
+                            mode: 'index',
+                                intersect: false,
+                        },
+                        hover: {
+                            mode: 'nearest',
+                                intersect: true
+                        },
+                        scales: {
+                            xAxes: [{
+                                display: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Time'
+                                }
+                            }],
+                                yAxes: [{
+                                display: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Performance'
+                                }
+                            }]
+                        }
+                    }
+                };
+            };
+            var clearData = function () {
+                tcData = [];
+                dcData = [];
+                if (window.dc){
+                    window.dc.config.data.datasets = [];
+                    window.tc.config.data.datasets = [];
+                    window.dc.update();
+                    window.tc.update();
+                }
+            }
+            var rander = function(date) {
+                $.get( "api/result?date=2008"+ date, function(performanceData ) {
+                    clearData();
+                    performanceData.forEach(function (performance) {
+                        dcData.push(performance.distancePerformance);
+                        tcData.push(performance.timePerformance)
+                    })
+
+                    var distanceChart = document.getElementById("dc_canvas").getContext("2d");
+                    window.dc = new Chart(distanceChart, initConfig(dcData , "Distance Performance"));
+                    var timeChat = document.getElementById("tc_canvas").getContext("2d");
+                    window.tc = new Chart(timeChat, initConfig(tcData, "Time Performance"));
+                });
+            };
+
+
+
+            window.onload = function() {
+                rander("0519")
+            };
+
+            document.getElementById('load_data').addEventListener('click', function() {
+                var date = $('#date').val();
+                rander(date);
+            });
+
+        </script>
     </body>
 </html>

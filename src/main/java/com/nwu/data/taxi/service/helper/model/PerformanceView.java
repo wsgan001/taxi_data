@@ -1,11 +1,10 @@
 package com.nwu.data.taxi.service.helper.model;
 
 import com.nwu.data.taxi.domain.model.Performance;
+import com.nwu.data.taxi.service.helper.Config;
 
 public class PerformanceView {
     private String time;
-    private double distancePerformance;
-    private double timePerformance;
     private double travelDistance;
     private double travelTime;
     private double liveDistance;
@@ -26,11 +25,6 @@ public class PerformanceView {
         this.liveTime += performance.getLiveTime();
     }
 
-    public void calculate() {
-        this.distancePerformance = liveDistance == 0 ? 0 : liveDistance / travelDistance;
-        this.timePerformance = liveTime == 0 ? 0 : liveTime / travelTime;
-    }
-
     public String getTime() {
         return time;
     }
@@ -39,21 +33,15 @@ public class PerformanceView {
         this.time = time;
     }
 
-    public double getDistancePerformance() {
-        return distancePerformance;
+    public String getDistancePerformance() {
+        return Config.NUM_FORMATTER.format(travelDistance == 0 ? 0 : liveDistance / travelDistance * 100);
     }
 
-    public void setDistancePerformance(double distancePerformance) {
-        this.distancePerformance = distancePerformance;
+
+    public String getTimePerformance() {
+        return Config.NUM_FORMATTER.format(travelTime == 0 ? 0 : liveTime / travelTime * 100);
     }
 
-    public double getTimePerformance() {
-        return timePerformance;
-    }
-
-    public void setTimePerformance(double timePerformance) {
-        this.timePerformance = timePerformance;
-    }
 
     public double getTravelDistance() {
         return travelDistance;

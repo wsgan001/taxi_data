@@ -6,6 +6,7 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 
 public class Config {
@@ -35,7 +36,7 @@ public class Config {
     public static SimpleDateFormat HOUR_FORMATTER = new SimpleDateFormat("HH");
     public static SimpleDateFormat WEEK_FORMATTER = new SimpleDateFormat("u");
     public static SimpleDateFormat YEAR_FORMATTER = new SimpleDateFormat("yyyyMMdd");
-
+    public static DecimalFormat NUM_FORMATTER=new DecimalFormat("#.##");
     public static File getDataFolder() {
         try {
             if (null == dataFolder) {
