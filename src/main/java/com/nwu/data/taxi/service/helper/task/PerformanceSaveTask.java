@@ -32,6 +32,7 @@ public class PerformanceSaveTask implements Task {
         logger.info("Saving Performance! :)");
         for (Vehicle v : vehicles) {
             performances.add(new Performance(v, new Date(currentTime * 1000), recommenderType));
+            v.cleanPerformance();
         }
         performanceRepository.save(performances);
     }

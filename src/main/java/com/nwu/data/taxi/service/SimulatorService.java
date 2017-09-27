@@ -83,6 +83,12 @@ public class SimulatorService {
         long currentTime = tasks.keySet().stream().min(Long::compare).get();
         while (currentTime <= endTime ) {
 
+            logger.info("Now is : " + Config.DATETIME_FORMATTER.format(new Date(currentTime * 1000)));
+            for (Task task : tasks.get(currentTime)) {
+                task.execute(tasks, currentTime, graph);
+            }
+            tasks.remove(currentTime);
+
             List<Vehicle> recommendList = vehicles.stream()
                     .filter(vehicle ->
                             vehicle.isOn() &&
@@ -94,13 +100,7 @@ public class SimulatorService {
                 logger.info("start recommending");
                 recommender.recommend(recommendList, graph);
             }
-            if (null != tasks.get(currentTime)) {
-                logger.info("Now is : " + Config.DATETIME_FORMATTER.format(new Date(currentTime * 1000)));
-                for (Task task : tasks.get(currentTime)) {
-                    task.execute(tasks, currentTime, graph);
-                }
-                tasks.remove(currentTime);
-            }
+
             currentTime = tasks.keySet().stream().min(Long::compare).get();
         }
     }

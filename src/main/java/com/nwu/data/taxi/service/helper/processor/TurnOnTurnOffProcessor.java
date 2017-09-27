@@ -39,7 +39,7 @@ public class TurnOnTurnOffProcessor {
         passengerData = new ArrayList<>();
         TripEvent lastEvent = tripEventRepository.findTopByOrderByIdDesc();
         if ((null == lastEvent) || (count >= lastEvent.getTaxi().getId())) {
-            taxiRepository.findAll(page).forEach(taxi -> processTaxi(taxi));
+            taxiRepository.findAll(page).forEach(this::processTaxi);
         }
         logger.info("Start saving passenger data");
         passengerRepository.save(passengerData);

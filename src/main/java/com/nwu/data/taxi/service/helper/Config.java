@@ -26,6 +26,7 @@ public class Config {
     public static final double MIN_LON = -122.526;
     public static final double MAX_LON = -122.35;
     public static final int TIME_CHUNK = 7200;
+    public static final int ONE_HOUR_CHUNK = 3600;
     public static final int NUM_OF_LAT_BINS = (int) ((MAX_LAT - MIN_LAT) / ANGLE_CHUNK) + 1;
     public static final int NUM_OF_LON_BINS = (int) ((MAX_LON - MIN_LON) / ANGLE_CHUNK) + 1;
     public static final long MAX_TIME_INTERVAL = 420;

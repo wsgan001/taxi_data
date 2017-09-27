@@ -23,9 +23,10 @@ public class SimulatorController {
     private PerformanceService performanceService;
 
     @RequestMapping(method = RequestMethod.GET, path = "/recommend")
-    public @ResponseBody Iterable<Performance> getTaxi (@RequestParam(value = "num", defaultValue = "20") int num,
+    public @ResponseBody Iterable<Performance> recommendByWeek (@RequestParam(value = "num", defaultValue = "20") int num,
                                                         @RequestParam(value = "date", defaultValue = "0517") String date,
-                                                        @RequestParam(value = "type", defaultValue = "2") int type) {
+                                                        @RequestParam(value = "type", defaultValue = "2") int type,
+                                                        @RequestParam(value = "day", defaultValue = "1") int day) {
         Date d = null;
         try {
             d = Config.DATE_FORMATTER.parse("2008" + date);
@@ -33,8 +34,12 @@ public class SimulatorController {
             e.printStackTrace();
         }
         long time = d.getTime() / 1000;
-        simulatorService.initEnvironment(type, time, time + 24 * 3600, num);
-        simulatorService.start();
+        for (int i = 0; i < day; i++) {
+            simulatorService.initEnvironment(type, time, time + 24 * 3600, num);
+            simulatorService.start();
+            time += 24 * 3600;
+        }
+
         return performanceService.getResult("2008" + date, type);
     }
 

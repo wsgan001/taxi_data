@@ -156,4 +156,11 @@ public class Vehicle {
     public void setTaxi(Taxi taxi) {
         this.taxi = taxi;
     }
+
+    public void cleanPerformance() {
+        this.liveDistance = 0;
+        this.liveTime = 0;
+        this.travelDistance = 0;
+        this.travelTime = 0;
+    }
 }
