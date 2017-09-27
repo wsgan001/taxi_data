@@ -44,12 +44,16 @@ public class VehicleMovementTask implements Task {
             passenger = currentGridPassengers.get(0);
             currentGridPassengers.remove(0);
             path = getShortestPath(currentGrid, passenger.getDestination());
-            vehicle.hunt();
-            logger.info(vehicle.getName() + " HUNT!");
-            freeCluster(vehicle);
-            vehicle.setCluster(new ArrayList<>());
-            vehicle.getCluster().add(passenger.getDestination());
-            vehicle.setRoute(path);
+            if (null != path){
+                vehicle.hunt();
+                logger.info(vehicle.getName() + " HUNT!");
+                freeCluster(vehicle);
+                vehicle.setCluster(new ArrayList<>());
+                vehicle.getCluster().add(passenger.getDestination());
+                vehicle.setRoute(path);
+                //assuming that all the other passengers are taking by the other no-need-recommend vehicles
+                currentGridPassengers.clear();
+            }
         }
     }
 

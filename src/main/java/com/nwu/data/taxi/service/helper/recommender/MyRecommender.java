@@ -35,10 +35,10 @@ public class MyRecommender implements Recommender {
 
     private List<Grid> bestRoute(Grid currentGrid, List<Grid> cluster) {
         double objective = Double.POSITIVE_INFINITY;
-        List<Grid> bestRoute = null;
+        List<Grid> bestRoute = new ArrayList<>();
         for (Grid destination : cluster) {
             double localObjective = currentGrid.getDistance(destination);
-            if ((null == bestRoute || localObjective < objective)) {
+            if ((bestRoute.size() == 0 || localObjective < objective)) {
                 List<Grid> route = calculateBestRoute(currentGrid, destination);
                 if (null != route) {
                     objective = localObjective;
