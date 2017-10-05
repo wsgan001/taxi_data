@@ -27,9 +27,9 @@ public class ProbabilityProcessor {
 
     public void process(Pageable page){
         initProbabilityWrappers();
-        gridProbabilityRepository.findAll().forEach(gridProbability -> processGridProbability(gridProbability));
+        gridProbabilityRepository.findAll().forEach(this::processGridProbability);
         gridProbabilityRepository.deleteAll();
-        taxiRepository.findAll(page).forEach(taxi -> processByTaxi(taxi));
+        taxiRepository.findAll(page).forEach(this::processByTaxi);
         save();
     }
 

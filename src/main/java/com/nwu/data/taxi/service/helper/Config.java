@@ -18,6 +18,7 @@ public class Config {
     public static final int REAL = 0;
     public static final int NEIGHBOR = 1;
     public static final int MY = 2;
+    public static final int MAX_CLUSTER = 3;
     private static File dataFolder;
     public static FilenameFilter FILE_FILTER = (dir1, name) -> name.endsWith(".txt");
     public static final double ANGLE_CHUNK = 0.005;

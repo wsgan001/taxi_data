@@ -24,9 +24,9 @@ public class SimulatorController {
 
     @RequestMapping(method = RequestMethod.GET, path = "/recommend")
     public @ResponseBody Iterable<Performance> recommendByWeek (@RequestParam(value = "num", defaultValue = "20") int num,
-                                                        @RequestParam(value = "date", defaultValue = "0517") String date,
-                                                        @RequestParam(value = "type", defaultValue = "2") int type,
-                                                        @RequestParam(value = "day", defaultValue = "1") int day) {
+                                                                @RequestParam(value = "date", defaultValue = "0517") String date,
+                                                                @RequestParam(value = "type", defaultValue = "2") int type,
+                                                                @RequestParam(value = "day", defaultValue = "1") int day) {
         Date d = null;
         try {
             d = Config.DATE_FORMATTER.parse("2008" + date);
@@ -37,6 +37,27 @@ public class SimulatorController {
         for (int i = 0; i < day; i++) {
             simulatorService.initEnvironment(type, time, time + 24 * 3600, num);
             simulatorService.start();
+            time += 24 * 3600;
+        }
+
+        return performanceService.getResult("2008" + date, type);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, path = "/real")
+    public @ResponseBody Iterable<Performance> analyzeRealData (@RequestParam(value = "num", defaultValue = "20") int num,
+                                                                @RequestParam(value = "date", defaultValue = "0517") String date,
+                                                                @RequestParam(value = "type", defaultValue = "2") int type,
+                                                                @RequestParam(value = "day", defaultValue = "1") int day) {
+        Date d = null;
+        try {
+            d = Config.DATE_FORMATTER.parse("2008" + date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        long time = d.getTime() / 1000;
+        for (int i = 0; i < day; i++) {
+            simulatorService.initRealWord(time, time + 24 * 3600, num);
+            simulatorService.analyzeReal();
             time += 24 * 3600;
         }
 

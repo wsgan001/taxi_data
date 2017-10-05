@@ -6,4 +6,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 @RepositoryRestResource(collectionResourceRel = "grid_reading", path="grid_reading")
 public interface GridReadingRepository extends PagingAndSortingRepository<GridReading, Integer> {
+    Iterable<GridReading> findByEventDateOrderByEventDateTime(String eventDate);
+
+    Iterable<GridReading> findByTaxiIdAndEventDateTimeIsBetweenOrderByEventDateTime(Integer taxiID, long start, long end);
 }

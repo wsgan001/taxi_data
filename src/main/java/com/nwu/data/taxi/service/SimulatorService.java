@@ -30,6 +30,7 @@ public class SimulatorService {
 
     private HashMap<Integer, Grid> graph;
     private HashMap<Long, List<Task>> tasks;
+    private HashMap<Long, List<GridReading>> gridReadings;
     private List<Vehicle> vehicles;
     private HashMap<String, List<GridProbability>> probabilities;
     private long endTime;
@@ -48,6 +49,8 @@ public class SimulatorService {
     private PerformanceRepository performanceRepository;
     @Autowired
     private TaxiRepository taxiRepository;
+    @Autowired
+    private GridReadingRepository gridReadingRepository;
 
     public SimulatorService() {
         this.graph = new HashMap<>();
@@ -101,6 +104,9 @@ public class SimulatorService {
                 recommender.recommend(recommendList, graph);
             }
 
+            if (tasks.keySet().isEmpty()) {
+                break;
+            }
             currentTime = tasks.keySet().stream().min(Long::compare).get();
         }
     }
@@ -238,6 +244,7 @@ public class SimulatorService {
     private void loadWeekProbabilities() {
         for (GridProbability gridProbability : gridProbabilityRepository.findByTimeTypeAndTimeChunk(ProbabilityWrapper.BY_WEEK, ProbabilityWrapper.HOUR_CHUNK)) {
             probabilities.computeIfAbsent(gridProbability.getTime(), k -> new ArrayList<>());
+            probabilities.get(gridProbability.getTime()).add(gridProbability);
         }
     }
 
@@ -245,4 +252,63 @@ public class SimulatorService {
         return Config.DATE_FORMATTER.format(new Date(startTime * 1000));
     }
 
+    public void initRealWord(long startTime, long endTime, int numberOfVehicles) {
+        this.endTime = endTime;
+        loadGraph();
+        vehicles = new ArrayList<>();
+        loadTopVehicles(Math.min(numberOfVehicles / 10, 20));//3
+        loadBottomVehicles(Math.min(numberOfVehicles / 10, 20));//3
+        loadModerateDrivers(numberOfVehicles - vehicles.size());
+        loadPerformanceTask(startTime, endTime);
+    }
+
+    public void analyzeReal() {
+        long currentTime = tasks.keySet().stream().min(Long::compare).get();
+        while (currentTime <= endTime ) {
+
+            logger.info("Now is : " + Config.DATETIME_FORMATTER.format(new Date(currentTime * 1000)));
+
+            for (Vehicle vehicle:vehicles) {
+                double travelDistance  = vehicle.getTravelDistance();
+                double liveDistance = vehicle.getLiveDistance();
+                double travelTime = vehicle.getTravelTime();
+                double liveTime = vehicle.getLiveTime();
+                double time = currentTime - 7200;
+
+                for (GridReading gridReading: gridReadingRepository.findByTaxiIdAndEventDateTimeIsBetweenOrderByEventDateTime(vehicle.getTaxi().getId(), currentTime - 7200, currentTime)) {
+                    Grid grid = graph.get(gridReading.getEventGrid());
+                    if (null == vehicle.getCurrentGrid()) {
+                        vehicle.setCurrentGrid(grid);
+                    } else {
+                        double duration = gridReading.getEventDateTime() - time;
+                        if (duration < Config.MAX_TIME_INTERVAL && null != grid) {
+                            double distance = vehicle.getCurrentGrid().getDistance(grid);
+                            travelDistance += distance;
+                            travelTime += duration;
+                            if (gridReading.getStatus() == 1) {
+                                liveDistance += distance;
+                                liveTime += duration;
+                            }
+                        }
+                        time = gridReading.getEventDateTime();
+                        vehicle.setCurrentGrid(grid);
+                    }
+                }
+
+                vehicle.setTravelDistance(travelDistance);
+                vehicle.setLiveDistance(liveDistance);
+                vehicle.setTravelTime(travelTime);
+                vehicle.setLiveTime(liveTime);
+            }
+
+            for (Task task : tasks.get(currentTime)) {
+                task.execute(tasks, currentTime, graph);
+            }
+            tasks.remove(currentTime);
+            if (tasks.keySet().isEmpty()) {
+                break;
+            }
+            currentTime = tasks.keySet().stream().min(Long::compare).get();
+        }
+    }
 }

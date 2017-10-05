@@ -40,9 +40,7 @@ public class VehicleMovementTask implements Task {
         List<Passenger> currentGridPassengers = currentGrid.getPassengers();
         if (!vehicle.isOccupied() && null != currentGridPassengers && !currentGridPassengers.isEmpty()) {
             List<Grid> path;
-            Passenger passenger;
-            passenger = currentGridPassengers.get(0);
-            currentGridPassengers.remove(0);
+            Passenger passenger = currentGridPassengers.get(0);
             path = getShortestPath(currentGrid, passenger.getDestination());
             if (null != path){
                 vehicle.hunt();
@@ -70,7 +68,7 @@ public class VehicleMovementTask implements Task {
         }
         if (vehicle.isOccupied() && vehicle.getRoute().isEmpty())
             vehicle.setOccupied(false);
-        if (from.isHighProbability() && vehicle.getCluster().contains(from)) {
+        if (vehicle.getCluster().contains(from)) {
             vehicle.getCluster().remove(from);
             from.setMaxNumberOfTaxis(from.getMaxNumberOfTaxis() + 1);
         }

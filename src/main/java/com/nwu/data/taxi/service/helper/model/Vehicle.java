@@ -2,6 +2,7 @@ package com.nwu.data.taxi.service.helper.model;
 
 
 import com.nwu.data.taxi.domain.model.Taxi;
+import com.nwu.data.taxi.service.helper.Config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,6 +156,10 @@ public class Vehicle {
 
     public void setTaxi(Taxi taxi) {
         this.taxi = taxi;
+    }
+
+    public boolean hasEnoughCluster () {
+        return this.getCluster().size() >= Config.MAX_CLUSTER;
     }
 
     public void cleanPerformance() {
