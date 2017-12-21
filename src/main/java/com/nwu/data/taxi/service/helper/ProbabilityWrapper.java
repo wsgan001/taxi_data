@@ -7,13 +7,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ProbabilityWrapper {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     public static final int BY_DAY = 0;
     public static final int BY_WEEK = 1;
     public static final int BY_YEAR = 2;
+    public static final int BY_HALF_HOUR = 3;
     public static final int HOUR_CHUNK = 2;
     public static final int DAY_CHUNK = 24;
+    public static final int HALF_HOUR_CHUNK = 30;
 
     private HashMap<String, int[][]> entranceCounter;
     private HashMap<String, int[][]> pickedUpCounter;
@@ -28,6 +33,7 @@ public class ProbabilityWrapper {
     }
 
     public void loadGridProbability(GridProbability gridProbability) {
+        logger.info("loading data");
         if (gridProbability.getTimeType() == this.timeType){
             String time = gridProbability.getTime();
             prepareArray(time);
@@ -36,6 +42,7 @@ public class ProbabilityWrapper {
             entranceCounter.get(time)[latBin][lonBin] = gridProbability.getEntrance();
             pickedUpCounter.get(time)[latBin][lonBin] = gridProbability.getPikedUp();
         }
+        logger.info("loading finished");
     }
 
     private void prepareArray(String time) {
@@ -66,6 +73,32 @@ public class ProbabilityWrapper {
     }
 
     private String getTime(Date date) {
+        if(timeType == BY_HALF_HOUR){
+            return getTimeHalfHour(date);
+        }
+
+        else{
+            return getTimeDayWeekYear(date);
+        }
+    }
+
+    public String getTimeHalfHour(Date date){
+        String formatedDate = Config.HALF_HOUR_FORMATTER.format(date);
+        int minute = Integer.parseInt(formatedDate.substring(formatedDate.length()-2));
+        String DateHour = formatedDate.substring(0, 10);
+        String time;
+        if(minute < 30)
+        {
+            time = DateHour + "00";
+        }
+        else
+        {
+           time = DateHour +"30";
+        }
+        return time;
+    }
+
+    public String getTimeDayWeekYear(Date date){
         String time = String.format("%02d", Integer.parseInt(Config.HOUR_FORMATTER.format(date)) / timeChunk * timeChunk);
         switch (timeType) {
             case BY_DAY:
@@ -77,8 +110,8 @@ public class ProbabilityWrapper {
             default:
                 return time;
         }
-
     }
+
 
     public List<GridProbability> generateProbabilities() {
         List<GridProbability> gridProbabilities = new ArrayList<>();
@@ -106,6 +139,8 @@ public class ProbabilityWrapper {
                 return "week day";
             case BY_YEAR:
                 return "year date";
+            case BY_HALF_HOUR:
+                return "half hour";
             default:
                 return "day";
         }

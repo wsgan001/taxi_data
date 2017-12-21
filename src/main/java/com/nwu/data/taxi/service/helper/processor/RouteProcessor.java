@@ -32,9 +32,9 @@ public class RouteProcessor {
 
     public void process(PageRequest pageRequest) {
         routes = new ArrayList<>();
-        this.routeRepository.findAll().forEach(route -> processRouteData(route));
+        this.routeRepository.findAll().forEach(route -> processRouteData(route));  // 查出每个route,并将其存在time 及 count 里面去
         this.routeRepository.deleteAll();
-        this.taxiRepository.findAll(pageRequest).forEach(taxi -> processTaxi(taxi));
+        this.taxiRepository.findAll(pageRequest).forEach(taxi -> processTaxi(taxi));  // 每个车的过路情况，提取到time 还有 count里面
         saveRouteData();
     }
 

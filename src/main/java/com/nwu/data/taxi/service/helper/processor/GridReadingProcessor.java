@@ -44,7 +44,7 @@ public class GridReadingProcessor {
                 }
                 gridReadings.add(gridReading);
             } else {
-                if (current.getGrid() != last.getGrid()) {
+                if (current.getGrid() != last.getGrid()) {  //进入新的格子
                     gridReading = new GridReading(current);
                     gridReadings.add(gridReading);
                 }

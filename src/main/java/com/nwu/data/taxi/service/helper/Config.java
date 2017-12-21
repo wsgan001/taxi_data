@@ -38,6 +38,7 @@ public class Config {
     public static SimpleDateFormat HOUR_FORMATTER = new SimpleDateFormat("HH");
     public static SimpleDateFormat WEEK_FORMATTER = new SimpleDateFormat("u");
     public static SimpleDateFormat YEAR_FORMATTER = new SimpleDateFormat("yyyyMMdd");
+    public static SimpleDateFormat HALF_HOUR_FORMATTER = new SimpleDateFormat("yyyyMMddHHmm");
     public static DecimalFormat NUM_FORMATTER=new DecimalFormat("#.##");
     public static File getDataFolder() {
         try {

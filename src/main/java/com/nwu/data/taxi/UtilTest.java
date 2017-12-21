@@ -1,25 +1,26 @@
 package com.nwu.data.taxi;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import com.nwu.data.taxi.service.helper.Config;
+
+import java.util.*;
 
 public class UtilTest {
     public static void main(String[] args) {
-        int x=10;
-        int y=25;
-        int z=x+y;
-        Random rand = new Random();
-        List<Integer> a = new ArrayList<>();
-        for(int i=0; i<10; i++) {
-            a.add(rand.nextInt(50));
+        Date date = new Date(121124800000L);
+        System.out.println(date);
+
+        String formatedDate = Config.HALF_HOUR_FORMATTER.format(date);
+        int minute = Integer.parseInt(formatedDate.substring(formatedDate.length()-2));
+        String DateHour = formatedDate.substring(0, 10);
+        //String time;
+        if(minute < 30)
+        {
+            System.out.println(DateHour + "00");
+            //return time;
         }
-
-        a.forEach(v-> {if (v/2 == 0) v = v*2;
-        });
-
-        a.sort(Comparator.comparingInt(v -> v/2));
-        System.out.printf(a.toString());
+        else
+        {
+            System.out.println(DateHour +"30");
+        }
     }
 }

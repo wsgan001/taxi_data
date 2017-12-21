@@ -26,9 +26,9 @@ public class ProbabilityProcessor {
     }
 
     public void process(Pageable page){
-        initProbabilityWrappers();
-        gridProbabilityRepository.findAll().forEach(this::processGridProbability);
-        gridProbabilityRepository.deleteAll();
+        initProbabilityWrappers();  // 初始化各个wrapper
+        gridProbabilityRepository.findAll().forEach(this::processGridProbability); // ?????????
+        gridProbabilityRepository.deleteAll();  // gridProbability中的每个内容,给他们loadProbability
         taxiRepository.findAll(page).forEach(this::processByTaxi);
         save();
     }
@@ -44,6 +44,7 @@ public class ProbabilityProcessor {
         probabilityWrappers.add(new ProbabilityWrapper(ProbabilityWrapper.BY_YEAR, ProbabilityWrapper.HOUR_CHUNK));
         probabilityWrappers.add(new ProbabilityWrapper(ProbabilityWrapper.BY_WEEK, ProbabilityWrapper.DAY_CHUNK));
         probabilityWrappers.add(new ProbabilityWrapper(ProbabilityWrapper.BY_YEAR, ProbabilityWrapper.DAY_CHUNK));
+        probabilityWrappers.add(new ProbabilityWrapper(ProbabilityWrapper.BY_HALF_HOUR, ProbabilityWrapper.HALF_HOUR_CHUNK));
     }
 
     public void processByTaxi(Taxi taxi) {
@@ -56,6 +57,7 @@ public class ProbabilityProcessor {
     public void save(){
         logger.info("Start saving data.");
         probabilityWrappers.forEach(probabilityWrapper -> saveProbabilities(probabilityWrapper.generateProbabilities(), probabilityWrapper));
+        logger.info("Stop saving data.");
     }
 
     private void saveProbabilities(List<GridProbability> gridProbabilities, ProbabilityWrapper probabilityWrapper) {

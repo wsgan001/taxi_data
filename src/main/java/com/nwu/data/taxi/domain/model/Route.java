@@ -16,7 +16,7 @@ public class Route {
     public Route() {
     }
 
-    public Route(int fromGrid, int toGrid, long duration, int count) {
+    public Route(int fromGrid , int toGrid, long duration, int count) {
         this.fromGrid = fromGrid;
         this.toGrid = toGrid;
         this.duration = duration;
