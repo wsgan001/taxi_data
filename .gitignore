@@ -2,6 +2,8 @@
 !gradle/wrapper/gradle-wrapper.jar
 node_modules
 out
+bin
+.vscode
 
 ### STS ###
 .apt_generated
