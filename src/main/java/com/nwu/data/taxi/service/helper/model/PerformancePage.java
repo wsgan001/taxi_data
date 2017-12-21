@@ -36,7 +36,7 @@ public class PerformancePage {
     private void collectData(Performance performance) {
         for (PerformanceView performanceView : performanceViews){
             if (performanceView.getTime().equals(performance.getTime())){
-                performanceView.addPerformance  (performance);
+                performanceView.addPerformance(performance);
                 performance = null;
                 break;
             }

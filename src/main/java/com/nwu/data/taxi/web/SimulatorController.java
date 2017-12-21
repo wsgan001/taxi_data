@@ -26,7 +26,8 @@ public class SimulatorController {
     public @ResponseBody Iterable<Performance> recommendByWeek (@RequestParam(value = "num", defaultValue = "20") int num,
                                                                 @RequestParam(value = "date", defaultValue = "0517") String date,
                                                                 @RequestParam(value = "type", defaultValue = "2") int type,
-                                                                @RequestParam(value = "day", defaultValue = "1") int day) {
+                                                                @RequestParam(value = "day", defaultValue = "1") int day,
+                                                                @RequestParam(value = "timeChunk", defaultValue = "60") int timeChunk) {
         Date d = null;
         try {
             d = Config.DATE_FORMATTER.parse("2008" + date);
@@ -35,7 +36,7 @@ public class SimulatorController {
         }
         long time = d.getTime() / 1000;
         for (int i = 0; i < day; i++) {
-            simulatorService.initEnvironment(type, time, time + 24 * 3600, num);
+            simulatorService.initEnvironment(type, time, time + 24 * 3600, num, timeChunk);
             simulatorService.start();
             time += 24 * 3600;
         }

@@ -1,5 +1,6 @@
 package com.nwu.data.taxi.web;
 
+import com.nwu.data.taxi.domain.model.GridProbability;
 import com.nwu.data.taxi.service.GPSReadingService;
 import com.nwu.data.taxi.service.PerformanceService;
 import com.nwu.data.taxi.service.helper.model.PerformancePage;
@@ -59,4 +60,9 @@ public class APIController {
         return performanceService.getPerformancePage("2008" + date);
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/grid_probability")
+    public @ResponseBody
+    Iterable<GridProbability> getGridProbability(@RequestParam(value = "date", defaultValue = "0531") String date, @RequestParam(value = "timeChunk", defaultValue = "30") int timeChunk) {
+        return gpsReadingService.getGridProbability("2008" + date, timeChunk);
+    }
 }

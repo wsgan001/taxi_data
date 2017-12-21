@@ -167,5 +167,6 @@ public class Vehicle {
         this.liveTime = 0;
         this.travelDistance = 0;
         this.travelTime = 0;
+        this.numOfHunts = 0;
     }
 }

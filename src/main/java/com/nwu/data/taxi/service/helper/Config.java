@@ -28,6 +28,7 @@ public class Config {
     public static final double MAX_LON = -122.35;
     public static final int TIME_CHUNK = 7200;
     public static final int ONE_HOUR_CHUNK = 3600;
+    public static final int HALF_HOUR_CHUNK = 1800;
     public static final int NUM_OF_LAT_BINS = (int) ((MAX_LAT - MIN_LAT) / ANGLE_CHUNK) + 1;
     public static final int NUM_OF_LON_BINS = (int) ((MAX_LON - MIN_LON) / ANGLE_CHUNK) + 1;
     public static final long MAX_TIME_INTERVAL = 420;
@@ -36,6 +37,8 @@ public class Config {
     public static SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyyMMdd");
     public static SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("HHmmss");
     public static SimpleDateFormat HOUR_FORMATTER = new SimpleDateFormat("HH");
+    public static SimpleDateFormat MINUTES_FORMATTER = new SimpleDateFormat("HH");
+    public static SimpleDateFormat TIME_HOUR_FORMATTER = new SimpleDateFormat("yyyyMMddHH");
     public static SimpleDateFormat WEEK_FORMATTER = new SimpleDateFormat("u");
     public static SimpleDateFormat YEAR_FORMATTER = new SimpleDateFormat("yyyyMMdd");
     public static SimpleDateFormat HALF_HOUR_FORMATTER = new SimpleDateFormat("yyyyMMddHHmm");

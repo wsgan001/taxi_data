@@ -4,10 +4,13 @@ package com.nwu.data.taxi.service;
 import com.nwu.data.taxi.domain.model.*;
 import com.nwu.data.taxi.domain.repository.*;
 import com.nwu.data.taxi.service.helper.processor.*;
+import com.sun.corba.se.spi.presentation.rmi.IDLNameTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class GPSReadingService {
@@ -63,5 +66,9 @@ public class GPSReadingService {
         ProbabilityProcessor probabilityProcessor = new ProbabilityProcessor(gridProbabilityRepository, taxiRepository);
         probabilityProcessor.process(new PageRequest(pageNum, pageSize));
         return pageNum;
+    }
+
+    public Iterable<GridProbability> getGridProbability(String date, int timeChunk) {
+        return gridProbabilityRepository.findByTimeStartingWithAndTimeChunk(date, timeChunk);
     }
 }

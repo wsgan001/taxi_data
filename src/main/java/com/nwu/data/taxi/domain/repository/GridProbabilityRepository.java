@@ -9,4 +9,6 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 public interface GridProbabilityRepository  extends PagingAndSortingRepository<GridProbability, Integer> {
     Iterable<GridProbability> findByTime(@Param("time") String time);
     Iterable<GridProbability> findByTimeTypeAndTimeChunk(@Param("timeType") int timeType, @Param("timeChunk") int timeChunk);
+
+    Iterable<GridProbability> findByTimeStartingWithAndTimeChunk(@Param("time") String date, @Param("timeChunk") int halfHourChunk);
 }
