@@ -1,8 +1,12 @@
 package com.nwu.data.taxi.domain.model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
 @Entity
-public class GridProbability implements GridProbabilityI{
+public class HalfHourGridProbability implements GridProbabilityI {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Integer id;
@@ -14,10 +18,10 @@ public class GridProbability implements GridProbabilityI{
     private int entrance;
     private int pikedUp;
 
-    public GridProbability() {
+    public HalfHourGridProbability() {
     }
 
-    public GridProbability(int eventGrid, double probability, String time, int timeType, int timeChunk, int entrance, int pikedUp) {
+    public HalfHourGridProbability(int eventGrid, double probability, String time, int timeType, int timeChunk, int entrance, int pikedUp) {
         this.grid = eventGrid;
         this.probability = probability;
         this.time = time;

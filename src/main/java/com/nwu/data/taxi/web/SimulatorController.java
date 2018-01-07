@@ -23,22 +23,23 @@ public class SimulatorController {
     private PerformanceService performanceService;
 
     @RequestMapping(method = RequestMethod.GET, path = "/recommend")
-    public @ResponseBody Iterable<Performance> recommendByWeek (@RequestParam(value = "num", defaultValue = "20") int num,
+    public @ResponseBody Iterable<Performance> recommendByWeek (@RequestParam(value = "num", defaultValue = "50") int num,
                                                                 @RequestParam(value = "date", defaultValue = "0517") String date,
-                                                                @RequestParam(value = "type", defaultValue = "2") int type,
-                                                                @RequestParam(value = "day", defaultValue = "1") int day,
-                                                                @RequestParam(value = "timeChunk", defaultValue = "60") int timeChunk) {
-        Date d = null;
-        try {
-            d = Config.DATE_FORMATTER.parse("2008" + date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        long time = d.getTime() / 1000;
-        for (int i = 0; i < day; i++) {
-            simulatorService.initEnvironment(type, time, time + 24 * 3600, num, timeChunk);
-            simulatorService.start();
-            time += 24 * 3600;
+                                                                @RequestParam(value = "type", defaultValue = "2") int type) {
+        String[] DATES = {"0605"};
+        int[] recommenderTypes = {Config.AVG};
+        for (int i = 0; i < 1 && i< DATES.length; i++) {
+            for (int recommenderType : recommenderTypes){
+                Date d = null;
+                try {
+                    d = Config.DATE_FORMATTER.parse("2008" + DATES[i]);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                long time = d.getTime() / 1000;
+                simulatorService.initEnvironment(time, time + 24 * 3600, num);
+                simulatorService.start(recommenderType, time);
+            }
         }
 
         return performanceService.getResult("2008" + date, type);

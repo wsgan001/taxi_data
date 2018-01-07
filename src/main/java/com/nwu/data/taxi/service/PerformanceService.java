@@ -23,7 +23,7 @@ public class PerformanceService {
         List<PerformancePage> performancePages = new ArrayList<>();
         performancePages.add(new PerformancePage(performanceRepository, date, Config.MY));
         performancePages.add(new PerformancePage(performanceRepository, date, Config.NEIGHBOR));
-        performancePages.add(new PerformancePage(performanceRepository, date, Config.REAL));
+        performancePages.add(new PerformancePage(performanceRepository, date, Config.AVG));
         return performancePages;
     }
 }

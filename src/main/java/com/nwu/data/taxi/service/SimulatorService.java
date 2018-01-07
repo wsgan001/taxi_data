@@ -32,12 +32,11 @@ public class SimulatorService {
     private HashMap<Long, List<Task>> tasks;
     private HashMap<Long, List<GridReading>> gridReadings;
     private List<Vehicle> vehicles;
-    private HashMap<String, List<GridProbability>> probabilities;
+    private HashMap<String, List<GridProbabilityI>> probabilities;
     private long endTime;
     private int recommenderType;
     private Recommender recommender;
     private int numberOfVehicles;
-    private int timeChunk;
     @Autowired
     private PassengerRepository passengerRepository;
     @Autowired
@@ -46,6 +45,8 @@ public class SimulatorService {
     private RouteRepository routeRepository;
     @Autowired
     private GridProbabilityRepository gridProbabilityRepository;
+    @Autowired
+    private KalGridProbabilityRepository kalGridProbabilityRepository;
     @Autowired
     private PerformanceRepository performanceRepository;
     @Autowired
@@ -59,68 +60,72 @@ public class SimulatorService {
         this.probabilities = new HashMap<>();
     }
 
-    public void initEnvironment(int recommenderType, long startTime, long endTime,
-                                int numberOfVehicles, int timeChunk) {
-        this.recommenderType = recommenderType;
-        switch (recommenderType) {
-            case Config.MY :
-                this.recommender = new MyRecommender();
-                break;
-            case Config.NEIGHBOR:
-                this.recommender = new NeighborRecommender();
-                break;
-            default:
-                this.recommender = new MyRecommender();
-                break;
-        }
+    public void initEnvironment(long startTime, long endTime,
+                                int numberOfVehicles) {
         this.endTime = endTime;
         this.numberOfVehicles = numberOfVehicles;
-        this.timeChunk = timeChunk;
         loadGraph();
-        String startDate = getDate(startTime);
-        loadVehicles(startDate);
-        loadPassengers(startDate);
-        loadProbabilities(startDate);
-        loadHalfHourProbabilities(startDate);
-        loadPerformanceTask(startTime, endTime);
+        loadVehicles(getDate(startTime));
+        loadPassengers(getDate(startTime));
     }
 
 
-    public void start() {
+    public void start(int recommenderType, long startTime) {
+        loadPerformanceTask(startTime, endTime, recommenderType);
+        switch (recommenderType) {
+            case Config.MY:
+                this.recommender = new MyRecommender();
+                loadKalProbabilities(getDate(startTime));
+                break;
+            case Config.NEIGHBOR:
+                this.recommender = new NeighborRecommender();
+                loadAvgProbabilities(getDate(startTime));
+                break;
+            case Config.AVG:
+                this.recommender = new MyRecommender();
+                loadAvgProbabilities(getDate(startTime));
+                break;
+            default:
+                this.recommender = new MyRecommender();
+                loadKalProbabilities(getDate(startTime));
+                break;
+        }
+
         long currentTime = tasks.keySet().stream().min(Long::compare).get();
-        while (currentTime <= endTime ) {
+        while (currentTime <= endTime) {
 
             logger.info("Now is : " + Config.DATETIME_FORMATTER.format(new Date(currentTime * 1000)));
             for (Task task : tasks.get(currentTime)) {
                 task.execute(tasks, currentTime, graph);
             }
             tasks.remove(currentTime);
-            if (currentTime == endTime) {
+            if (currentTime != endTime) {
+                List<Vehicle> recommendList = vehicles.stream()
+                        .filter(vehicle ->
+                                vehicle.isOn() &&
+                                        CollectionUtils.isEmpty(vehicle.getRoute()))
+                        .collect(Collectors.toList());
+
+                if (!recommendList.isEmpty()) {
+                    //                updateWeekProbabilities(new Date(currentTime * 1000));
+                    updateKalProbabilities(new Date(currentTime * 1000));
+                    logger.info("start recommending");
+                    recommender.recommend(recommendList, graph);
+                }
+
+                if (tasks.keySet().isEmpty()) {
+                    break;
+                }
+                currentTime = tasks.keySet().stream().min(Long::compare).get();
+            } else {
                 break;
             }
-            List<Vehicle> recommendList = vehicles.stream()
-                    .filter(vehicle ->
-                            vehicle.isOn() &&
-                                    CollectionUtils.isEmpty(vehicle.getRoute()))
-                    .collect(Collectors.toList());
-
-            if (!recommendList.isEmpty()) {
-                updateProbabilities(new Date(currentTime * 1000));
-                logger.info("start recommending");
-                recommender.recommend(recommendList, graph);
-            }
-
-            if (tasks.keySet().isEmpty()) {
-                break;
-            }
-            currentTime = tasks.keySet().stream().min(Long::compare).get();
         }
     }
 
 
-    private void loadPerformanceTask(long startTime, long endTime) {
-        int chunk = timeChunk == ProbabilityWrapper.HALF_HOUR_CHUNK ? Config.HALF_HOUR_CHUNK : Config.TIME_CHUNK;
-        for (long time = startTime + chunk; time <= endTime; time += chunk) {
+    private void loadPerformanceTask(long startTime, long endTime, int recommenderType) {
+        for (long time = startTime + Config.HALF_HOUR_CHUNK; time <= endTime; time += Config.HALF_HOUR_CHUNK) {
             tasks.computeIfAbsent(time, k -> new ArrayList<>());
             tasks.get(time).add(new PerformanceSaveTask(performanceRepository, vehicles, recommenderType));
         }
@@ -237,10 +242,13 @@ public class SimulatorService {
         taxiRepository.findByNameIn(names).forEach(taxi -> vehicles.add(new Vehicle(taxi)));
     }
 
+    private void updateWeekProbabilities(Date date) {
+        String time = Config.WEEK_FORMATTER.format(date) + String.format("%02d", Integer.parseInt(Config.HOUR_FORMATTER.format(date)) / 2 * 2);
+        updateProbabilities(time);
+    }
 
-    private void updateProbabilities(Date date) {
-    String time = timeChunk == ProbabilityWrapper.HALF_HOUR_CHUNK ? getHalfHourTime(date) : getHourTime(date);
-        for (GridProbability gridProbability : probabilities.get(time)) {
+    private void updateProbabilities(String time) {
+        for (GridProbabilityI gridProbability : probabilities.get(time)) {
             Grid grid = graph.get(gridProbability.getGrid());
             if (null != grid) {
                 grid.setProbability(gridProbability.getProbability());
@@ -249,33 +257,32 @@ public class SimulatorService {
         }
     }
 
-    private String getHourTime( Date date) {
-        return  Config.WEEK_FORMATTER.format(date) + String.format("%02d", Integer.parseInt(Config.HOUR_FORMATTER.format(date)) / 2 * 2);
-    }
-
-    private String getHalfHourTime(Date date) {
-        return Config.TIME_HOUR_FORMATTER.format(date) + String.format("%02d", Integer.parseInt(Config.MINUTES_FORMATTER.format(date)) / 30 * 30);
-    }
-
-    private void loadProbabilities (String date) {
-        if (timeChunk == ProbabilityWrapper.HALF_HOUR_CHUNK) {
-            loadHalfHourProbabilities(date);
-        } else {
-            loadWeekProbabilities();
-        }
+    private void updateKalProbabilities(Date date) {
+        String minute = Integer.parseInt(Config.MINUTE_FORMATTER.format(date)) > 30 ? "30" : "00";
+        String time = Config.KAL_HOUR_FORMATTER.format(date) + minute;
+        updateProbabilities(time);
     }
 
     private void loadWeekProbabilities() {
-        for (GridProbability gridProbability : gridProbabilityRepository.findByTimeTypeAndTimeChunk(ProbabilityWrapper.BY_WEEK, ProbabilityWrapper.HOUR_CHUNK)) {
+        for (GridProbabilityI gridProbability : gridProbabilityRepository.findByTimeTypeAndTimeChunk(ProbabilityWrapper.BY_WEEK, ProbabilityWrapper.HOUR_CHUNK)) {
             probabilities.computeIfAbsent(gridProbability.getTime(), k -> new ArrayList<>());
             probabilities.get(gridProbability.getTime()).add(gridProbability);
         }
     }
-    private void loadHalfHourProbabilities(String date) {
-         for (GridProbability gridProbability : gridProbabilityRepository.findByTimeStartingWithAndTimeChunk(date, ProbabilityWrapper.HALF_HOUR_CHUNK)) {
-             probabilities.computeIfAbsent(gridProbability.getTime(), k -> new ArrayList<>());
-             probabilities.get(gridProbability.getTime()).add(gridProbability);
-         }
+
+    private void loadKalProbabilities(String date) {
+        for (KalGridProbability kalGridProbability : kalGridProbabilityRepository.findByTimeContains(date)) {
+            probabilities.computeIfAbsent(kalGridProbability.getTime(), k -> new ArrayList<>());
+            probabilities.get(kalGridProbability.getTime()).add(kalGridProbability);
+        }
+    }
+
+    private void loadAvgProbabilities(String date) {
+        for (KalGridProbability kalGridProbability : kalGridProbabilityRepository.findByTimeContains(date)) {
+            probabilities.computeIfAbsent(kalGridProbability.getTime(), k -> new ArrayList<>());
+            kalGridProbability.setProbability(kalGridProbability.getAvgProbability());
+            probabilities.get(kalGridProbability.getTime()).add(kalGridProbability);
+        }
     }
 
     private String getDate(long startTime) {
@@ -289,23 +296,23 @@ public class SimulatorService {
         loadTopVehicles(Math.min(numberOfVehicles / 10, 20));//3
         loadBottomVehicles(Math.min(numberOfVehicles / 10, 20));//3
         loadModerateDrivers(numberOfVehicles - vehicles.size());
-        loadPerformanceTask(startTime, endTime);
+        loadPerformanceTask(startTime, endTime, recommenderType);
     }
 
     public void analyzeReal() {
         long currentTime = tasks.keySet().stream().min(Long::compare).get();
-        while (currentTime <= endTime ) {
+        while (currentTime <= endTime) {
 
             logger.info("Now is : " + Config.DATETIME_FORMATTER.format(new Date(currentTime * 1000)));
 
-            for (Vehicle vehicle:vehicles) {
-                double travelDistance  = vehicle.getTravelDistance();
+            for (Vehicle vehicle : vehicles) {
+                double travelDistance = vehicle.getTravelDistance();
                 double liveDistance = vehicle.getLiveDistance();
                 double travelTime = vehicle.getTravelTime();
                 double liveTime = vehicle.getLiveTime();
                 double time = currentTime - 7200;
 
-                for (GridReading gridReading: gridReadingRepository.findByTaxiIdAndEventDateTimeIsBetweenOrderByEventDateTime(vehicle.getTaxi().getId(), currentTime - 7200, currentTime)) {
+                for (GridReading gridReading : gridReadingRepository.findByTaxiIdAndEventDateTimeIsBetweenOrderByEventDateTime(vehicle.getTaxi().getId(), currentTime - 7200, currentTime)) {
                     Grid grid = graph.get(gridReading.getEventGrid());
                     if (null == vehicle.getCurrentGrid()) {
                         vehicle.setCurrentGrid(grid);

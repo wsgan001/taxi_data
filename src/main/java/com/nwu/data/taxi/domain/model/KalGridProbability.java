@@ -1,8 +1,11 @@
 package com.nwu.data.taxi.domain.model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 @Entity
-public class GridProbability implements GridProbabilityI{
+public class KalGridProbability implements GridProbabilityI{
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Integer id;
@@ -13,11 +16,13 @@ public class GridProbability implements GridProbabilityI{
     private int timeChunk;
     private int entrance;
     private int pikedUp;
+    private double avgProbability;
+    private double realProbability;
 
-    public GridProbability() {
+    public KalGridProbability() {
     }
 
-    public GridProbability(int eventGrid, double probability, String time, int timeType, int timeChunk, int entrance, int pikedUp) {
+    public KalGridProbability(int eventGrid, double probability, String time, int timeType, int timeChunk, int entrance, int pikedUp) {
         this.grid = eventGrid;
         this.probability = probability;
         this.time = time;
@@ -25,6 +30,18 @@ public class GridProbability implements GridProbabilityI{
         this.timeChunk = timeChunk;
         this.entrance = entrance;
         this.pikedUp = pikedUp;
+    }
+
+    public KalGridProbability(HalfHourGridProbability gridProbability, double x, double avgProbability, double realProbability) {
+        this.grid = gridProbability.getGrid();
+        this.probability = x;
+        this.time = gridProbability.getTime();
+        this.timeType = gridProbability.getTimeType();
+        this.timeChunk = gridProbability.getTimeChunk();
+        this.entrance = gridProbability.getEntrance();
+        this.pikedUp = gridProbability.getPikedUp();
+        this.avgProbability = avgProbability;
+        this.realProbability = realProbability;
     }
 
     public Integer getId() {
@@ -90,4 +107,21 @@ public class GridProbability implements GridProbabilityI{
     public void setTimeChunk(int timeChunk) {
         this.timeChunk = timeChunk;
     }
+
+    public double getAvgProbability() {
+        return avgProbability;
+    }
+
+    public void setAvgProbability(double avgProbability) {
+        this.avgProbability = avgProbability;
+    }
+
+    public double getRealProbability() {
+        return realProbability;
+    }
+
+    public void setRealProbability(double realProbability) {
+        this.realProbability = realProbability;
+    }
+
 }
