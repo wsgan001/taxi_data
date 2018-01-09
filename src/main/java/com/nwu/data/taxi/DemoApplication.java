@@ -15,7 +15,6 @@ import java.util.TimeZone;
 @EnableAsync
 @SpringBootApplication
 @ComponentScan
-@EnableCaching
 public class DemoApplication {
     @PostConstruct
     void started() {

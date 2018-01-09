@@ -26,9 +26,9 @@ public class SimulatorController {
     public @ResponseBody Iterable<Performance> recommendByWeek (@RequestParam(value = "num", defaultValue = "50") int num,
                                                                 @RequestParam(value = "date", defaultValue = "0517") String date,
                                                                 @RequestParam(value = "type", defaultValue = "2") int type) {
-        String[] DATES = {"0605"};
-        int[] recommenderTypes = {Config.AVG};
-        for (int i = 0; i < 1 && i< DATES.length; i++) {
+        String[] DATES = {"0605","0606"};
+        int[] recommenderTypes = {Config.MY, Config.AVG};
+        for (int i = 0;i< DATES.length; i++) {
             for (int recommenderType : recommenderTypes){
                 Date d = null;
                 try {

@@ -27,7 +27,7 @@ public class KalService {
     @Async
     public void calKalProbability(String date, String dayHalfHour){
         List<KalGridProbability> kalGridProbabilities = new ArrayList<>();
-        for (GridData gridData : gridDataRepository.findAll()) {
+        for (GridData gridData : gridDataRepository.findByIsSelected(true)) {
             kalGridProbabilities.addAll(probabilityService.calculateKalGridProbability(date, dayHalfHour, gridData));
             logger.info("processed grid: " + gridData.getGrid());
         }

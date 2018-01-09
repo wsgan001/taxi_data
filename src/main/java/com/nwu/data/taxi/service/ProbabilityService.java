@@ -25,15 +25,17 @@ public class ProbabilityService {
     private HalfHourGridProbabilityRepository halfHourGridProbabilityRepository;
 
     public List<KalGridProbability> calculateKalGridProbability(String date, String dayHalfHour, GridData gridData){
-        double wVariance = 0.00001;
-        double vVariance = 0.0001;
+        double wVariance = 0.000001;
+        double vVariance = 0.00001;
         List<KalGridProbability> kalGridProbabilities = new ArrayList<>();
         double xHat = -1;
         double pHat;
-        double p = 0.3;
+        double p = 0.1;
         double x = 0;
         double k;
-        List<HalfHourGridProbability> halfHourGridProbabilityList = halfHourGridProbabilityRepository.findByGridAndTimeNotContainsAndTimeContainsOrderByTime(gridData.getGrid(), date, dayHalfHour);
+        String nextDateTime = addHalfHour(date+dayHalfHour);
+        String nextTime = nextDateTime.substring(nextDateTime.length()-4, nextDateTime.length());
+        List<HalfHourGridProbability> halfHourGridProbabilityList = halfHourGridProbabilityRepository.findByGridAndTimeNotContainsAndTimeContainsOrderByTime(gridData.getGrid(), date, nextTime);
         HalfHourGridProbability currentGridProbability = halfHourGridProbabilityRepository.findByGridAndTimeContains(gridData.getGrid(), date+dayHalfHour);
         halfHourGridProbabilityList.add(currentGridProbability);
         for (HalfHourGridProbability halfHourGridProbability : halfHourGridProbabilityList) {
@@ -49,19 +51,29 @@ public class ProbabilityService {
             }
         }
 
-        String nextDateTime = addHalfHour(date+dayHalfHour);
-        String nextTime = nextDateTime.substring(nextDateTime.length()-4, nextDateTime.length());
         HalfHourGridProbability realGridProbability = halfHourGridProbabilityRepository.findByGridAndTimeContains(gridData.getGrid(), nextDateTime);
-        List<HalfHourGridProbability> nextProbabilityList = halfHourGridProbabilityRepository.findByGridAndTimeNotContainsAndTimeContainsOrderByTime(gridData.getGrid(), date, nextTime);
-        double avgProbability = 0;
-        for (HalfHourGridProbability nextProbability : nextProbabilityList) {
-            avgProbability+=nextProbability.getProbability();
-        }
-        avgProbability /= nextProbabilityList.size();
+        double avgProbability = getAVGProbability(date+dayHalfHour, gridData.getGrid());
         KalGridProbability kalGridProbability = new KalGridProbability(currentGridProbability, x, avgProbability, realGridProbability.getProbability());
         kalGridProbabilities.add(kalGridProbability);
         logger.info("processed grid: " + kalGridProbability.getGrid() + "time: " + kalGridProbability.getTime());
         return kalGridProbabilities;
+    }
+
+    private double getAVGProbability(String currentTime, int grid){
+        String previousWeek = previousWeek(currentTime);
+        HalfHourGridProbability firstWeek = halfHourGridProbabilityRepository.findByGridAndTimeContains(grid, previousWeek);
+        previousWeek = previousWeek(previousWeek);
+        HalfHourGridProbability secondWeek = halfHourGridProbabilityRepository.findByGridAndTimeContains(grid, previousWeek);
+        return (firstWeek.getProbability()+secondWeek.getProbability())/2;
+    }
+
+    private String previousWeek(String date){
+        try {
+            DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmm");
+            return dateFormat.format(new Date(dateFormat.parse(date).getTime() - 604800000));
+        } catch (ParseException e) {
+            return date;
+        }
     }
 
     private String addHalfHour(String date){

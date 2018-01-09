@@ -3,7 +3,6 @@ package com.nwu.data.taxi.service;
 import com.nwu.data.taxi.domain.model.*;
 import com.nwu.data.taxi.domain.repository.*;
 import com.nwu.data.taxi.service.helper.Config;
-import com.nwu.data.taxi.service.helper.ProbabilityWrapper;
 import com.nwu.data.taxi.service.helper.Recommender;
 import com.nwu.data.taxi.service.helper.Task;
 import com.nwu.data.taxi.service.helper.model.Grid;
@@ -30,9 +29,8 @@ public class SimulatorService {
 
     private HashMap<Integer, Grid> graph;
     private HashMap<Long, List<Task>> tasks;
-    private HashMap<Long, List<GridReading>> gridReadings;
     private List<Vehicle> vehicles;
-    private HashMap<String, List<GridProbabilityI>> probabilities;
+    private HashMap<String, List<KalGridProbability>> probabilities;
     private long endTime;
     private int recommenderType;
     private Recommender recommender;
@@ -71,6 +69,7 @@ public class SimulatorService {
 
 
     public void start(int recommenderType, long startTime) {
+        this.recommenderType = recommenderType;
         loadPerformanceTask(startTime, endTime, recommenderType);
         switch (recommenderType) {
             case Config.MY:
@@ -248,10 +247,11 @@ public class SimulatorService {
     }
 
     private void updateProbabilities(String time) {
-        for (GridProbabilityI gridProbability : probabilities.get(time)) {
+        for (KalGridProbability gridProbability : probabilities.get(time)) {
             Grid grid = graph.get(gridProbability.getGrid());
             if (null != grid) {
-                grid.setProbability(gridProbability.getProbability());
+                double probability = recommenderType == Config.MY ? gridProbability.getProbability() : gridProbability.getAvgProbability();
+                grid.setProbability(probability);
                 grid.setMaxNumberOfTaxis(numberOfVehicles / 6);
             }
         }
@@ -263,12 +263,12 @@ public class SimulatorService {
         updateProbabilities(time);
     }
 
-    private void loadWeekProbabilities() {
-        for (GridProbabilityI gridProbability : gridProbabilityRepository.findByTimeTypeAndTimeChunk(ProbabilityWrapper.BY_WEEK, ProbabilityWrapper.HOUR_CHUNK)) {
-            probabilities.computeIfAbsent(gridProbability.getTime(), k -> new ArrayList<>());
-            probabilities.get(gridProbability.getTime()).add(gridProbability);
-        }
-    }
+//    private void loadWeekProbabilities() {
+//        for (GridProbabilityI gridProbability : gridProbabilityRepository.findByTimeTypeAndTimeChunk(ProbabilityWrapper.BY_WEEK, ProbabilityWrapper.HOUR_CHUNK)) {
+//            probabilities.computeIfAbsent(gridProbability.getTime(), k -> new ArrayList<>());
+//            probabilities.get(gridProbability.getTime()).add(gridProbability);
+//        }
+//    }
 
     private void loadKalProbabilities(String date) {
         for (KalGridProbability kalGridProbability : kalGridProbabilityRepository.findByTimeContains(date)) {
@@ -280,7 +280,6 @@ public class SimulatorService {
     private void loadAvgProbabilities(String date) {
         for (KalGridProbability kalGridProbability : kalGridProbabilityRepository.findByTimeContains(date)) {
             probabilities.computeIfAbsent(kalGridProbability.getTime(), k -> new ArrayList<>());
-            kalGridProbability.setProbability(kalGridProbability.getAvgProbability());
             probabilities.get(kalGridProbability.getTime()).add(kalGridProbability);
         }
     }
