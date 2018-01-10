@@ -9,6 +9,4 @@ import org.springframework.transaction.annotation.Transactional;
 @RepositoryRestResource(collectionResourceRel = "performance", path="performance")
 public interface PerformanceRepository extends  PagingAndSortingRepository<Performance, Integer> {
     Iterable<Performance> findByDateAndType(String date, int type);
-    @Transactional
-    Integer removeAllByDateAndType(String date, int type);
 }

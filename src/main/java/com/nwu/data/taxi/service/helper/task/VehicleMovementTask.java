@@ -7,7 +7,6 @@ import com.nwu.data.taxi.service.helper.model.Vehicle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.ManyToOne;
 import java.util.*;
 
 

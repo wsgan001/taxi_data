@@ -9,6 +9,5 @@ import java.util.List;
 
 @RepositoryRestResource(collectionResourceRel = "taxi", path="taxi")
 public interface TaxiRepository extends PagingAndSortingRepository<Taxi, Integer> {
-    Taxi findTopByName(@Param("name") String name);
     Iterable<Taxi> findByNameIn(List<String> names);
 }
