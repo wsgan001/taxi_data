@@ -78,8 +78,7 @@ public class APIController {
     @RequestMapping(method = RequestMethod.GET, path = "/cal_kal")
     public @ResponseBody
     String calKal(@RequestParam(value = "date", defaultValue = "0519") String date) {
-//        String[] DATES = {"0526","0529","0530","0601","0602","0605","0606","0607","0608","0609"};
-        String[] DATES = {"0601","0602","0605","0606","0607","0608","0609"};
+        String[] DATES = {"0518","0519","0522","0523","0524","0525","0526"};
         for (String test : DATES) {
             for (String dayHalfHour : Config.DAY_HALF_HOURS) {
                 kalService.calKalProbability("2008" + test, dayHalfHour);

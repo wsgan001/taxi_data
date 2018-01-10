@@ -184,6 +184,7 @@ public class SimulatorService {
                 int location = passengerData.getStartGrid();
                 int destination = passengerData.getEndGrid();
                 long time = passengerData.getTravelDateTime() - Config.TIME_OFFSET;
+                time =  date.equals(getDate(time)) ? time : passengerData.getTravelDateTime();
                 if (null != graph.get(location) && null != graph.get(destination)) {
                     Passenger traveller = new Passenger(graph.get(location), graph.get(destination), Config.WAITING_TIME);
                     tasks.computeIfAbsent(time, k -> new ArrayList<>());

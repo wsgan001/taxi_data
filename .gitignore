@@ -5,6 +5,7 @@ out
 bin
 .vscode
 log/
+log
 ### STS ###
 .apt_generated
 .classpath
